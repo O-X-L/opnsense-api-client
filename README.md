@@ -1,10 +1,12 @@
 # OPNSense API Client
 
-This is a client for interacting with the official OPNSense API.
+This is a Python3 client for interacting with the official OPNSense API.
 
-This can be useful if you want to automate your Infrastructure and do not use [Ansible](https://www.ansible.com/how-ansible-works/).
+It enables simple management and automation of OPNSense firewalls. An interactive CLI interface might be added later on.
 
 The base-code is a Fork of this [OPNSense Ansible-Collection](https://github.com/ansibleguy/collection_opnsense) that was refactored for use within raw Python.
+
+This can be useful if you want to automate your Infrastructure and do not use [Ansible](https://www.ansible.com/how-ansible-works/).
 
 **WARNING**: This project is still in early development! The forked code is pretty much stable, but the refactor may not yet be.
 
