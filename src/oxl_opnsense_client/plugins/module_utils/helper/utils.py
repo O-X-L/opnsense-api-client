@@ -33,6 +33,10 @@ def profiler(
     except (ConnectError, ConnectTimeout, ConnectionError) as error:
         httpx_error = str(error)
 
+    except:
+        _.disable()
+        raise
+
     _.disable()
     result = StringIO()
     Stats(_, stream=result).sort_stats(sort).print_stats(show_top_n)
