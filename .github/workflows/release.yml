@@ -1,0 +1,63 @@
+---
+
+name: Release on PyPI
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  publish:
+    name: Upload release to PyPI
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Install python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements_build.txt >/dev/null
+          pip install -r requirements.txt >/dev/null
+
+      - name: Testing to build with PIP
+        run: |
+          cd /tmp
+          echo 'CREATING TMP VENV'
+          tmp_venv="/tmp/aw-venv/$(date +%s)"
+          python3 -m virtualenv "$tmp_venv" >/dev/null
+          source "${tmp_venv}/bin/activate"
+
+          echo 'INSTALLING MODULE'
+          python3 -m pip install -e "$GITHUB_WORKSPACE" >/dev/null
+
+          echo 'CLEANUP'
+          deactivate
+          rm -rf "$tmp_venv"
+
+      - name: Extract tag name
+        id: version
+        run: echo ::set-output name=TAG_NAME::$(echo $GITHUB_REF | cut -d / -f 3 | cut -c 1-)
+
+      - name: Building
+        run: |
+          git reset --hard || true
+          echo "${{ steps.version.outputs.TAG_NAME }}" > VERSION
+          python3 -m build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}

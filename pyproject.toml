@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oxl-opnsense-client"
+authors = [
+    {name = "Rath Pascal", email = "contact@oxl.at"},
+]
+description = "OXL OPNSense API Client"
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = [
+    "api", "client", "opnsense", "firewall", "network",
+    "network-as-code", "nac", "infrastructure-as-code", "iac",
+]
+license = {file = "LICENSE.txt"}
+classifiers = [
+    'Programming Language :: Python :: 3',
+    'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+]
+dynamic = ["dependencies", "version"]
+
+[project.urls]
+Homepage = "https://www.oxl.at"
+Documentation = "https://github.com/O-X-L/opnsense-api-client"
+Repository = "https://github.com/O-X-L/opnsense-api-client.git"
+Issues = "https://github.com/O-X-L/opnsense-api-client/issues"
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+version = {file = ["VERSION"]}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["*.txt"]
+
+# [project.scripts]
+# ansibleguy-webui = "ansibleguy-webui.__main__"
+# ansibleguy-webui-db = "ansibleguy-webui.manage"

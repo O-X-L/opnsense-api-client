@@ -1,0 +1,2 @@
+recursive-include src/oxl_opnsense_client/*
+include requirements.txt

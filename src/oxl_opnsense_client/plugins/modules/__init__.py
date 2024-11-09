@@ -1,0 +1,1 @@
+from .syslog import run_module as syslog
