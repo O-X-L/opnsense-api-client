@@ -31,8 +31,7 @@ class Client:
 
     def __init__(
             self,
-            firewall: str, port: int,
-            token: str = None, secret: str = None, credential_file: str = None,
+            firewall: str, token: str = None, secret: str = None, credential_file: str = None, port: int = 443,
             ssl_verify: bool = True, ssl_ca_file: str = None, api_timeout: float = 2.0, api_retries : int = 0,
             debug: bool = False, profiling: bool = False,
             shell: bool = True,
@@ -75,11 +74,9 @@ class Client:
 
     def test(self) -> bool:
         t = self.reachable()
-        if t:
-            print('OK')
-            return t
+        if self.shell:
+            print('OK' if t else 'UNREACHABLE')
 
-        print('UNREACHABLE')
         return t
 
     def reachable(self) -> bool:
