@@ -16,7 +16,7 @@ The base-code is a Fork of this [OPNSense Ansible-Collection](https://github.com
 pip install oxl-opnsense-client
 ```
 
-```python3cc
+```python3
 from oxl_opnsense_client import Client
 
 with Client(
