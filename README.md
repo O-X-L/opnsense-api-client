@@ -18,6 +18,25 @@ This can be useful if you want to automate your Infrastructure and do not use [A
 pip install oxl-opnsense-client
 ```
 
+Get to know the available modules:
+
+* [Module list](https://github.com/O-X-L/opnsense-api-client/tree/main/src/oxl_opnsense_client/plugins/modules)
+* [Ansible Docs](https://opnsense.ansibleguy.net)
+
+----
+
+## Contribute
+
+Feel free to [report issues/bugs](https://github.com/O-X-L/opnsense-api-client/issues), [take part in discussions](https://github.com/O-X-L/opnsense-api-client/discussions) and [provide PRs to enhance or extend the codebase](https://github.com/O-X-L/opnsense-api-client/pulls).
+
+Note: Only the [API-enabled](https://docs.opnsense.org/development/api.html) functionalities can be implemented.
+
+----
+
+## Usage
+
+See also: [Ansible OPNSense-Collection Docs](https://opnsense.ansibleguy.net/en/latest/usage/2_basic.html)
+
 ```python3
 from oxl_opnsense_client import Client
 
@@ -32,17 +51,6 @@ with Client(
     > OK
 ```
 
-----
-
-## Contribute
-
-Feel free to [report issues/bugs](https://github.com/O-X-L/opnsense-api-client/issues), [take part in discussions](https://github.com/O-X-L/opnsense-api-client/discussions) and [provide PRs to enhance or extend the codebase](https://github.com/O-X-L/opnsense-api-client/pulls).
-
-----
-
-## Usage
-
-See also: [Ansible OPNSense-Collection Docs](https://opnsense.ansibleguy.net/en/latest/usage/2_basic.html)
 
 ### Credentials
 
