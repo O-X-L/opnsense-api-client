@@ -48,7 +48,6 @@ def validate_input(i: ModuleInput, definition: dict):
                     kn = ka
                     break
 
-
         if kn not in p:
             if 'required' in d and d['required']:
                 exit_cnf(f"The required parameter '{k}' was not provided!")
@@ -65,7 +64,11 @@ def validate_input(i: ModuleInput, definition: dict):
         if 'type' in d:
             t = TYPE_MAPPING[d['type']]
             if not isinstance(normalized_params[k], t):
-                normalized_params[k] = t(normalized_params[k])
+                try:
+                    normalized_params[k] = t(normalized_params[k])
+
+                except (TypeError, ValueError) as e:
+                    exit_cnf(f"The parameter '{k}' has an invalid type - must be {d['type']} ({e})")
 
         if 'choices' in d:
             if isinstance(normalized_params[k], str) and normalized_params[k] not in d['choices']:
@@ -77,7 +80,6 @@ def validate_input(i: ModuleInput, definition: dict):
                         exit_cnf(
                             f"The parameter '{k}' has an invalid value - have to be one or multiple of: {d['choices']}"
                         )
-
 
     i.user_params = normalized_params
 

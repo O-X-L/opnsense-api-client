@@ -30,7 +30,7 @@ Get to know the available modules:
 
 ## Contribute
 
-Feel free to [report issues/bugs](https://github.com/O-X-L/opnsense-api-client/issues), [take part in discussions](https://github.com/O-X-L/opnsense-api-client/discussions) and [provide PRs to enhance or extend the codebase](https://github.com/O-X-L/opnsense-api-client/pulls).
+Feel free to [report issues/bugs](https://github.com/O-X-L/opnsense-api-client/issues), [take part in discussions](https://github.com/O-X-L/opnsense-api-client/discussions), [add/extend tests](https://github.com/O-X-L/opnsense-api-client/tree/latest/src/tests) and [provide PRs to enhance or extend the codebase](https://github.com/O-X-L/opnsense-api-client/pulls).
 
 Note: Only the [API-enabled](https://docs.opnsense.org/development/api.html) functionalities can be implemented.
 
