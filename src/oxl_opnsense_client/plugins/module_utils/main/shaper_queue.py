@@ -39,8 +39,8 @@ class Queue(BaseModule):
         'existing_pipes': 'ts.pipes.pipe',
     }
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.queue = {}
         self.existing_pipes = None
 
@@ -52,11 +52,11 @@ class Queue(BaseModule):
 
         if self.p['state'] == 'present':
             if self.p['pipe'] in [None, '']:
-                self.m.fail_json("You need to provide a 'pipe' to create a shaper queue!")
+                self.m.fail("You need to provide a 'pipe' to create a shaper queue!")
 
             if self.p['weight'] in [None, '']:
                 if not self.exists:
-                    self.m.fail_json("You need to provide 'weight' to create a shaper queue!")
+                    self.m.fail("You need to provide 'weight' to create a shaper queue!")
 
                 else:
                     self.p['weight'] = self.queue['weight']

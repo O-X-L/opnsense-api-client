@@ -35,8 +35,8 @@ class Vlan(BaseModule):
     }
     EXIST_ATTR = 'vlan'
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.vlan = {}
 
     def check(self) -> None:

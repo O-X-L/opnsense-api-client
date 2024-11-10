@@ -47,8 +47,8 @@ class RouteMap(BaseModule):
         'existing_communities': 'bgp.communitylists.communitylist',
     }
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.route_map = {}
         self.existing_paths = None
         self.existing_prefixes = None

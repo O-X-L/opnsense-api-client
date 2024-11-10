@@ -40,8 +40,8 @@ class Service(BaseModule):
         'existing_tests': 'monit.test',
     }
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.service = {}
         self.existing_tests = None
 
@@ -50,16 +50,16 @@ class Service(BaseModule):
             validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
 
             if is_unset(self.p['type']):
-                self.m.fail_json("You need to provide a 'type' to create a service!")
+                self.m.fail("You need to provide a 'type' to create a service!")
 
             elif self.p['type'] == 'network' and is_unset(self.p['interface']) and is_unset(self.p['address']):
-                self.m.fail_json(
+                self.m.fail(
                     "You need to provide either an 'interface' or 'address' "
                     "to create a network service!"
                 )
 
             elif self.p['type'] == 'host' and is_unset(self.p['address']):
-                self.m.fail_json(
+                self.m.fail(
                     "You need to provide an 'address' to create "
                     "a remote-host service!"
                 )

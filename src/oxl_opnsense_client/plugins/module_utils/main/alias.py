@@ -38,7 +38,7 @@ class Alias(BaseModule):
             self, m, result: dict, cnf: dict = None,
             session: Session = None, fail_verify: bool = True, fail_proc: bool = True
     ):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+        BaseModule.__init__(self=self, m=m, r=result)
         self.fail_verify = fail_verify
         self.fail_proc = fail_proc
         self.alias = {}
@@ -52,7 +52,7 @@ class Alias(BaseModule):
 
         if self.p['type'] == 'dynipv6host':
             if is_unset(self.p['interface']):
-                self.m.fail_json('You need to provide an interface to create a dynipv6host alias!')
+                self.m.fail('You need to provide an interface to create a dynipv6host alias!')
             self.FIELDS_CHANGE = self.FIELDS_CHANGE + ['interface']
 
         if len(self.p['name']) > self.MAX_ALIAS_LEN:
@@ -121,7 +121,7 @@ class Alias(BaseModule):
 
     def _error(self, msg: str, verification: bool = True) -> None:
         if (verification and self.fail_verify) or (not verification and self.fail_proc):
-            self.m.fail_json(msg)
+            self.m.fail(msg)
 
         else:
             self.m.warn(msg)

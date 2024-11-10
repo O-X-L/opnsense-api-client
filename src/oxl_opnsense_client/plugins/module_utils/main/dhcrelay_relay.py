@@ -30,8 +30,8 @@ class DhcRelayRelay(BaseModule):
         'existing_destinations': 'dhcrelay.destinations',
     }
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.relay = {}
         self.existing_destinations = None
 

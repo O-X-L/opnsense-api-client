@@ -37,7 +37,7 @@ def process(m, p: dict, r: dict) -> None:
     # checking if all aliases should be purged
     if not p['force_all'] and is_unset(p['aliases']) and \
             is_unset(p['filters']):
-        m.fail_json("You need to either provide 'aliases' or 'filters'!")
+        m.fail("You need to either provide 'aliases' or 'filters'!")
 
     if p['force_all'] and is_unset(p['aliases']) and \
             is_unset(p['filters']):

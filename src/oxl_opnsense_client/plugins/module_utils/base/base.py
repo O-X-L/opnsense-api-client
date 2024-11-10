@@ -5,7 +5,6 @@
 
 from typing import Callable
 
-from .api import single_get, single_post
 from ..helper.main import \
     get_simple_existing, to_digit, get_matching, simplify_translate, is_unset, \
     sort_param_lists
@@ -579,7 +578,7 @@ class Base:
 
             if not found:
                 if fail:
-                    self.i.m.fail_json(
+                    self.i.m.fail(
                         f"Provided {field} '{self.i.p[field]}' was not found!"
                     )
 
@@ -614,7 +613,7 @@ class Base:
             msg = f"At least one of the provided {field} entries was not found!"
 
             if fail:
-                self.i.m.fail_json(msg)
+                self.i.m.fail(msg)
 
             if fail_soft:
                 raise ModuleSoftError(msg)
@@ -699,23 +698,10 @@ class Base:
         return {}
 
     def _api_post(self, cnf: dict) -> (dict, list):
-        if hasattr(self.i, 's'):
-            return self.i.s.post(
-                cnf=cnf,
-                headers=self._api_headers()
-            )
-
-        return single_post(
+        return self.i.s.post(
             cnf=cnf,
-            m=self.i.m,
             headers=self._api_headers()
         )
 
     def _api_get(self, cnf: dict) -> (dict, list):
-        if hasattr(self.i, 's'):
-            return self.i.s.get(cnf=cnf)
-
-        return single_get(
-            cnf=cnf,
-            m=self.i.m
-        )
+        return self.i.s.get(cnf=cnf)

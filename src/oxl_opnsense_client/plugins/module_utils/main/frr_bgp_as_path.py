@@ -32,8 +32,8 @@ class AsPath(BaseModule):
     }
     EXIST_ATTR = 'as_path'
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.as_path = {}
 
     def check(self) -> None:

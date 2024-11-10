@@ -58,8 +58,8 @@ class Gw(BaseModule):
     }
     EXIST_ATTR = 'gw'
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.gw = {}
 
     def check(self) -> None:
@@ -70,20 +70,20 @@ class Gw(BaseModule):
                 ip_address(self.p['gateway'])
 
             except ValueError:
-                self.m.fail_json(f"Value '{self.p['gateway']}' is not a valid gateway!")
+                self.m.fail(f"Value '{self.p['gateway']}' is not a valid gateway!")
 
             if self.p['monitor']:
                 try:
                     ip_address(self.p['monitor'])
 
                 except ValueError:
-                    self.m.fail_json(f"Value '{self.p['monitor']}' is not a valid monitor address!")
+                    self.m.fail(f"Value '{self.p['monitor']}' is not a valid monitor address!")
 
             if not self.p['interface']:
-                self.m.fail_json('You need to provide a value for the interface!')
+                self.m.fail('You need to provide a value for the interface!')
 
             if not self.p['gateway']:
-                self.m.fail_json('You need to provide a value for the gateway!')
+                self.m.fail('You need to provide a value for the gateway!')
 
             if is_ip6(self.p['gateway']):
                 self.p['ip_protocol'] = 'inet6'

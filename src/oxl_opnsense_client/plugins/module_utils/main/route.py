@@ -32,8 +32,8 @@ class Route(BaseModule):
     }
     EXIST_ATTR = 'route'
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.route = {}
 
     def check(self) -> None:
@@ -41,7 +41,7 @@ class Route(BaseModule):
             ip_network(self.p['network'])
 
         except ValueError:
-            self.m.fail_json(f"Value '{self.p['network']}' is not a valid network!")
+            self.m.fail(f"Value '{self.p['network']}' is not a valid network!")
 
         self._base_check()
 

@@ -58,8 +58,8 @@ class General(GeneralModule):
     }
     TIMEOUT = 60.0  # 'disable' taking long
 
-    def __init__(self, m, result: dict, session: Session = None):
-        GeneralModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        GeneralModule.__init__(self=self, m=m, r=result)
 
     def _search_call(self) -> dict:
         settings = self.s.get(cnf={

@@ -50,8 +50,8 @@ class Server(BaseModule):
     }
     EXIST_ATTR = 'server'
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.server = {}
         self.existing_peers = None
         self.existing_vips = {}

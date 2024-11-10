@@ -46,8 +46,8 @@ class Pipe(BaseModule):
     EXIST_ATTR = 'pipe'
     TIMEOUT = 20.0  # 'get' timeout
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.pipe = {}
 
     def check(self) -> None:
@@ -55,7 +55,7 @@ class Pipe(BaseModule):
             validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
 
             if is_unset(self.p['bandwidth']):
-                self.m.fail_json('You need to provide bandwidth to create a shaper pipe!')
+                self.m.fail('You need to provide bandwidth to create a shaper pipe!')
 
         self._base_check()
 

@@ -1,4 +1,4 @@
-from .main import OPN_MOD_ARGS, STATE_MOD_ARG, RELOAD_MOD_ARG
+from .main import STATE_MOD_ARG, RELOAD_MOD_ARG
 
 RULE_DEFAULTS = {
     'sequence': 1,
@@ -120,7 +120,6 @@ RULE_MOD_ARGS = dict(
     uuid=dict(type='str', required=False, description='Optionally you can supply the uuid of an existing rule'),
     **STATE_MOD_ARG,
     **RULE_MATCH_FIELDS_ARG,
-    **OPN_MOD_ARGS,
     **RELOAD_MOD_ARG,
 )
 

@@ -37,20 +37,20 @@ class Syslog(BaseModule):
     EXIST_ATTR = 'dest'
     TIMEOUT = 40.0  # reload using unresolvable dns
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.dest = {}
 
     def check(self) -> None:
         if not is_ip(self.p['target']) and \
                 not is_valid_domain(self.p['target']):
-            self.m.fail_json(
+            self.m.fail(
                 f"Value of target '{self.p['target']}' is neither "
                 f"a valid IP-Address nor a valid domain-name!"
             )
 
         if self.p['transport'].startswith('tls') and is_unset(self.p['certificate']):
-            self.m.fail_json(
+            self.m.fail(
                 "You need to provide a certificate to use encrypted transport!"
             )
 
@@ -60,7 +60,7 @@ class Syslog(BaseModule):
                     IPv6Address(self.p['target'])
 
                 except (AddressValueError, NetmaskValueError):
-                    self.m.fail_json(
+                    self.m.fail(
                         "Target does not match transport ip-protocol (IPv6)!"
                     )
 
@@ -69,7 +69,7 @@ class Syslog(BaseModule):
                     IPv4Address(self.p['target'])
 
                 except (AddressValueError, NetmaskValueError):
-                    self.m.fail_json(
+                    self.m.fail(
                         "Target does not match transport ip-protocol (IPv4)!"
                     )
 

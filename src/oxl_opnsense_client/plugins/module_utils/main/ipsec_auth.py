@@ -61,7 +61,7 @@ class BaseAuth(BaseModule):
             )
 
             if is_unset(self.p['connection']):
-                self.m.fail_json(
+                self.m.fail(
                     "You need to provide a 'connection' to create an IPSec auth!"
                 )
 
@@ -69,14 +69,14 @@ class BaseAuth(BaseModule):
                     is_unset(self.p['certificates']) and
                     is_unset(self.p['public_keys'])
             ):
-                self.m.fail_json(
+                self.m.fail(
                     "You need to provide at least one certificate or public-key to use the 'pubkey' "
                     'authentication method!'
                 )
 
             if self.p['authentication'] in ['eap_tls', 'eap_mschapv2', 'eap_radius'] and \
                     is_unset(self.p['eap_id']):
-                self.m.fail_json(
+                self.m.fail(
                     f"You need to provide an 'eap_id' to use the '{self.p['authentication']}' "
                     'authentication method!'
                 )

@@ -53,8 +53,8 @@ class Domain(BaseModule):
     EXIST_ATTR = 'domain'
     # FIELDS_DIFF_EXCLUDE = ['serial']
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.domain = {}
         self.existing_acls = None
         self.existing_records = None
@@ -67,7 +67,7 @@ class Domain(BaseModule):
             for field in ['allow_notify', 'primary']:
                 for ip in self.p[field]:
                     if not is_ip(ip, ignore_empty=True):
-                        self.m.fail_json(
+                        self.m.fail(
                             f"It seems you provided an invalid IP address as '{field}': '{is_ip}'"
                         )
 
@@ -88,7 +88,7 @@ class Domain(BaseModule):
                 if self.existing_records is not None and len(self.existing_records) > 0:
                     for record in self.existing_records.values():
                         if get_selected(record['domain']) == self.domain['uuid']:
-                            self.m.fail_json(
+                            self.m.fail(
                                 f"Unable to remove domain '{self.domain['name']}' - it has at least "
                                 f"one existing record: '{get_selected(record['type'])}: "
                                 f"{record['name']}.{self.domain['name']}'"

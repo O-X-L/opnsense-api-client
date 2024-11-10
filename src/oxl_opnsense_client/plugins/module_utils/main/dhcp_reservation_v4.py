@@ -32,8 +32,8 @@ class ReservationV4(BaseModule):
     FIELDS_IGNORE = ['subnet']  # empty field ?!
     EXIST_ATTR = 'reservation'
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.reservation = {}
         self.existing_reservations = None
         self.existing_subnets = None

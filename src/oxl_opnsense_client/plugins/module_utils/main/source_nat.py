@@ -40,19 +40,19 @@ class SNat(BaseModule):
     EXIST_ATTR = 'rule'
     API_CMD_REL = 'apply'
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.rule = {}
 
     def check(self) -> None:
         if self.p['state'] == 'present':
             if is_unset(self.p['interface']):
-                self.m.fail_json(
+                self.m.fail(
                     "You need to provide an 'interface' to create a source-nat rule!"
                 )
 
             if is_unset(self.p['target']):
-                self.m.fail_json(
+                self.m.fail(
                     "You need to provide an 'target' to create a source-nat rule!"
                 )
 
@@ -62,7 +62,7 @@ class SNat(BaseModule):
         self.b.find(match_fields=self.p['match_fields'])
 
         if self.p['state'] == 'present':
-            validate_values(m=self.m, cnf=self.p, error_func=self.m.fail_json)
+            validate_values(m=self.m, cnf=self.p, error_func=self.m.fail)
             self.r['diff']['after'] = self.b.build_diff(data=self.p)
 
     def _build_log_name(self) -> str:

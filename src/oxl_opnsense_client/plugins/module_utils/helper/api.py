@@ -10,63 +10,6 @@ from .main import ensure_list, is_ip
 from .validate import is_valid_domain
 
 
-def _load_credential_file(m) -> None:
-    cred_file_info = Path(m.params['api_credential_file'])
-
-    if cred_file_info.is_file():
-        cred_file_mode = oct(cred_file_info.stat().st_mode)[-3:]
-
-        if int(cred_file_mode[2]) != 0:
-            m.warn(
-                f"Provided 'api_credential_file' at path "
-                f"'{m.params['api_credential_file']}' is world-readable "
-                f"(mode {cred_file_mode})!"
-            )
-
-        with open(m.params['api_credential_file'], 'r', encoding='utf-8') as file:
-            config = {}
-            vaulted = False
-
-            for line in file.readlines():
-                try:
-                    key, value = line.split('=', 1)
-                    config[key] = value.strip()
-
-                except ValueError:
-                    if line.startswith('$ANSIBLE_VAULT'):
-                        vaulted = True
-                        break
-
-            if vaulted:
-                m.fail_json(
-                    f"Credential file '{m.params['api_credential_file']}' "
-                    'is ansible-vault encrypted! This is not yet supported.'
-                )
-
-            if 'key' not in config or 'secret' not in config:
-                m.fail_json(
-                    f"Credential file '{m.params['api_credential_file']}' "
-                    'could not be parsed!'
-                )
-
-            m.params['api_key'] = config['key']
-            m.params['api_secret'] = config['secret']
-
-    else:
-        m.fail_json(
-            f"Provided 'api_credential_file' at path "
-            f"'{m.params['api_credential_file']}' does not exist!"
-        )
-
-
-def check_or_load_credentials(m) -> None:
-    if m.params['api_credential_file'] is not None:
-        _load_credential_file(m)
-
-    elif m.params['api_key'] is None and m.params['api_secret'] is None:
-        m.fail_json("Neither 'api_key' & 'api_secret' nor 'api_credential_file' were provided!")
-
-
 def check_host(m) -> None:
     if not is_ip(m.params['firewall']):
         fw_dns = m.params['firewall']
@@ -76,7 +19,7 @@ def check_host(m) -> None:
             fw_dns = f'dummy.{fw_dns}'
 
         if not is_valid_domain(fw_dns):
-            m.fail_json(f"Host '{m.params['firewall']}' is neither a valid IP nor Domain-Name!")
+            m.fail(f"Host '{m.params['firewall']}' is neither a valid IP nor Domain-Name!")
 
 
 def ssl_verification(m) -> (ssl.SSLContext, bool):
@@ -90,7 +33,7 @@ def ssl_verification(m) -> (ssl.SSLContext, bool):
             context.load_verify_locations(cafile=m.params['ssl_ca_file'])
 
         else:
-            m.fail_json(f"Provided 'ssl_ca_file' at path '{m.params['ssl_ca_file']}' does not exist!")
+            m.fail(f"Provided 'ssl_ca_file' at path '{m.params['ssl_ca_file']}' does not exist!")
 
     return context
 
@@ -163,7 +106,7 @@ def check_response(m, cnf: dict, response) -> dict:
             ('result' in json and json['result'] == 'failed'):
         # sometimes an error 'hides' behind a 200-code
         if f"{response.__dict__}".find('Controller not found') != -1:
-            m.fail_json(
+            m.fail(
                 f"API call failed | Needed plugin not installed! | "
                 f"Response: {response.__dict__}"
             )
@@ -173,13 +116,13 @@ def check_response(m, cnf: dict, response) -> dict:
 
         else:
             if 'validations' in json:
-                m.fail_json(
+                m.fail(
                     f"API call failed | Error: {json['validations']} | "
                     f"Response: {response.__dict__}"
                 )
 
             else:
-                m.fail_json(f"API call failed | Response: {response.__dict__}")
+                m.fail(f"API call failed | Response: {response.__dict__}")
 
     return json
 
@@ -195,4 +138,4 @@ def api_pretty_exception(m, method: str, url: str, error):
         msg = f"SSL verification failed '{url}'! Make sure to follow the the documentation: "\
               "https://opnsense.ansibleguy.net/en/latest/usage/2_basic.html#ssl-certificate"
 
-    m.fail_json(f"{msg} ({error})")
+    m.fail(f"{msg} ({error})")

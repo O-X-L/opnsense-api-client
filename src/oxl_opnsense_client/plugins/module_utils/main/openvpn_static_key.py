@@ -30,8 +30,8 @@ class Key(BaseModule):
     EXIST_ATTR = 'key'
     FIELDS_DIFF_NO_LOG = ['key']
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.key = {}
 
     def check(self) -> None:

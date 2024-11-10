@@ -29,8 +29,8 @@ class Acl(BaseModule):
     }
     EXIST_ATTR = 'acl'
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.acl = {}
 
     def check(self) -> None:
@@ -41,11 +41,11 @@ class Acl(BaseModule):
 
         if self.p['state'] == 'present':
             if is_unset(self.p['networks']):
-                self.m.fail_json('You need to provide at networks to create an ACL!')
+                self.m.fail('You need to provide at networks to create an ACL!')
 
             for net in self.p['networks']:
                 if not is_ip_or_network(net):
-                    self.m.fail_json(
+                    self.m.fail(
                         f"It seems you provided an invalid network: '{net}'"
                     )
 

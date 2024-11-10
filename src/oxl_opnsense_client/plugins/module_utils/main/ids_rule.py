@@ -26,15 +26,15 @@ class Rule(BaseModule):
     EXIST_ATTR = 'rule'
     QUERY_MAX_RULES = 5000
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.rule = {}
         self.exists = False
 
     def check(self) -> None:
         self._search_call()
         if not self.exists:
-            self.m.fail_json(f"The provided rule '{self.p[self.FIELD_PK]}' was not found!")
+            self.m.fail(f"The provided rule '{self.p[self.FIELD_PK]}' was not found!")
 
         self.r['diff']['after'] = self.b.build_diff(data=self.p)
         self.r['changed'] = self.r['diff']['before'] != self.r['diff']['after']

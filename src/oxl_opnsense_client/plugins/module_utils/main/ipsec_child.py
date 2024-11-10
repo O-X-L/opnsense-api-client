@@ -46,8 +46,8 @@ class Child(BaseModule):
         'existing_conns': 'swanctl.Connections.Connection',
     }
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.child = {}
         self.existing_conns = None
 
@@ -57,7 +57,7 @@ class Child(BaseModule):
 
             for field in ['connection', 'local_net', 'remote_net']:
                 if is_unset(self.p[field]):
-                    self.m.fail_json(
+                    self.m.fail(
                         f"You need to provide a '{field}' to create an IPSec child!"
                     )
 

@@ -1,4 +1,4 @@
-from .main import OPN_MOD_ARGS, STATE_MOD_ARG
+from .main import STATE_MOD_ARG
 
 ALIAS_DEFAULTS = {
     'state': 'present',
@@ -46,5 +46,4 @@ ALIAS_MOD_ARGS = dict(
         description=' Select the interface for the V6 dynamic IP.',
     ),
     **STATE_MOD_ARG,
-    **OPN_MOD_ARGS,
 )

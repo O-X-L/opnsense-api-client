@@ -29,8 +29,8 @@ class Rule(BaseModule):
     EXIST_ATTR = 'rule'
     QUERY_MAX_RULES = 1000
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.rule = {}
         self.exists = False
 

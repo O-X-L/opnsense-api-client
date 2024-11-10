@@ -3,18 +3,34 @@ from .base import Base
 from ..helper.main import validate_int_fields, validate_str_fields
 
 
+class SessionWrapper:
+    def __init__(self, s: Session, timeout: float = None):
+        self.s = s
+        self.timeout = timeout
+
+    def get(self, cnf: dict) -> dict:
+        if self.timeout is not None:
+            return self.s.get(cnf=cnf, timeout=self.timeout)
+
+        return self.s.get(cnf=cnf)
+
+    def post(self, cnf: dict, headers: dict = None) -> dict:
+        if self.timeout is not None:
+            return self.s.post(cnf=cnf, headers=headers, timeout=self.timeout)
+
+        return self.s.post(cnf=cnf, headers=headers)
+
+    def close(self):
+        self.s.close()
+
+
 class BaseModule:
-    def __init__(self, m, r: dict, s: Session = None):
-        if hasattr(self, 'TIMEOUT'):
-            self.s = Session(
-                m=m,
-                timeout=self.TIMEOUT,
-            ) if s is None else s
-
-        else:
-            self.s = Session(m=m) if s is None else s
-
+    def __init__(self, m, r: dict):
         self.m = m
+        self.s = SessionWrapper(
+            s=self.m.c.session,
+            timeout=self.TIMEOUT if hasattr(self, 'TIMEOUT') else None,
+        )
         self.p = m.params
         self.r = r
         self.b = Base(instance=self)
@@ -68,16 +84,11 @@ class GeneralModule:
     EXIST_ATTR = 'settings'
 
     def __init__(self, m, r: dict, s: Session = None):
-        if hasattr(self, 'TIMEOUT'):
-            self.s = Session(
-                m=m,
-                timeout=self.TIMEOUT,
-            ) if s is None else s
-
-        else:
-            self.s = Session(m=m) if s is None else s
-
         self.m = m
+        self.s = SessionWrapper(
+            s=self.m.c.session,
+            timeout=self.TIMEOUT if hasattr(self, 'TIMEOUT') else None,
+        )
         self.p = m.params
         self.r = r
         self.b = Base(instance=self)

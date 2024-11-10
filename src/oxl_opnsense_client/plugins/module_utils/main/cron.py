@@ -30,14 +30,14 @@ class CronJob(BaseModule):
     FIELDS_ALL.extend(FIELDS_CHANGE)
     EXIST_ATTR = 'cron'
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.cron = {}
         self.available_commands = []
 
     def check(self) -> None:
         if self.p['state'] == 'present' and is_unset(self.p['command']):
-            self.m.fail_json("You need to provide a 'command' if you want to create a cron-job!")
+            self.m.fail("You need to provide a 'command' if you want to create a cron-job!")
 
         self.b.find(match_fields=[self.FIELD_ID])
 
@@ -46,7 +46,7 @@ class CronJob(BaseModule):
 
             if self.p['command'] is not None and len(self.available_commands) > 0 and \
                     self.p['command'] not in self.available_commands:
-                self.m.fail_json(
+                self.m.fail(
                     'Got unsupported command! '
                     f"Available ones are: {', '.join(self.available_commands)}"
                 )

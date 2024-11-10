@@ -52,8 +52,8 @@ class Rule(BaseModule):
         'existing_queues': 'ts.queues.queue',
     }
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.rule = {}
         self.existing_queues = None
         self.existing_pipes = None
@@ -66,7 +66,7 @@ class Rule(BaseModule):
         if self.p['state'] == 'present':
             if self.p['target_pipe'] in [None, ''] and \
                     self.p['target_queue'] in [None, '']:
-                self.m.fail_json(
+                self.m.fail(
                     "You need to provide a 'target_pipe' or 'target_queue' to "
                     "create a shaper rule!"
                 )

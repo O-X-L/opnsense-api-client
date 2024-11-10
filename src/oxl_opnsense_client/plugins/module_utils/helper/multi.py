@@ -23,7 +23,7 @@ def validate_single(
     if validation_error:
         error_msg = validation.errors.msg
         if m.params['fail_verification']:
-            m.fail_json(f"Got invalid config for {log_mod} '{key}': {error_msg}")
+            m.fail(f"Got invalid config for {log_mod} '{key}': {error_msg}")
 
         else:
             m.warn(f"Got invalid config for {log_mod} '{key}': {error_msg}")

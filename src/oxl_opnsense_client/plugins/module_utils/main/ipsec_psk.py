@@ -34,14 +34,14 @@ class PreSharedKey(BaseModule):
     TIMEOUT = 30.0  # ipsec reload
     FIELDS_DIFF_NO_LOG = ['psk']
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.psk = {}
 
     def check(self) -> None:
         if self.p['state'] == 'present':
             if is_unset(self.p['psk']):
-                self.m.fail_json('You need to supply a PSK!')
+                self.m.fail('You need to supply a PSK!')
 
         self._base_check()
 

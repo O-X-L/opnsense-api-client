@@ -27,8 +27,8 @@ class Ruleset(BaseModule):
     EXIST_ATTR = 'ruleset'
     QUERY_MAX_RULES = 1000
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.ruleset = {}
         self.exists = False
         self.existing_rulesets_desc = []
@@ -36,7 +36,7 @@ class Ruleset(BaseModule):
     def check(self) -> None:
         self._search_call()
         if not self.exists:
-            self.m.fail_json(
+            self.m.fail(
                 f"The provided ruleset '{self.p[self.FIELD_ID]}' was not found! "
                 f"Available ones are: '{self.existing_rulesets_desc}'"
             )

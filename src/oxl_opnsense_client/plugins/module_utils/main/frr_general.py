@@ -27,5 +27,5 @@ class General(GeneralModule):
         'select': ['log_level', 'profile'],
     }
 
-    def __init__(self, m, result: dict, session: Session = None):
-        GeneralModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        GeneralModule.__init__(self=self, m=m, r=result)

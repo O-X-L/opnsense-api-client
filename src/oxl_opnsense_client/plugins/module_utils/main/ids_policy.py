@@ -39,8 +39,8 @@ class Policy(BaseModule):
     EXIST_ATTR = 'policy'
     QUERY_MAX_RULES = 5000
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.policy = {}
         self.exists = False
         self.enabled_rulesets = {}
@@ -53,7 +53,7 @@ class Policy(BaseModule):
                 self._search_rulesets()
 
             if len(self.enabled_rulesets) == 0:
-                self.m.fail_json("You need to enable rulesets before referencing them!")
+                self.m.fail("You need to enable rulesets before referencing them!")
 
             ruleset_uuids = []
             for ruleset in self.p['rulesets']:
@@ -64,7 +64,7 @@ class Policy(BaseModule):
                         ruleset_uuids.append(uuid)
 
                 if not found:
-                    self.m.fail_json(
+                    self.m.fail(
                         f"The ruleset '{ruleset}' was not found! "
                         "You need to enable a ruleset before referencing it. "
                         f"Enabled ones are: {list(self.enabled_rulesets.keys())}"

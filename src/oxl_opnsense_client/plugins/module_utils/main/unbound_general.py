@@ -57,8 +57,8 @@ class General(GeneralModule):
         'existing_outgoing_interfaces': 'unbound.general.outgoing_interface',
     }
 
-    def __init__(self, m, result: dict, session: Session = None):
-        GeneralModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        GeneralModule.__init__(self=self, m=m, r=result)
         self.existing_active_interfaces = []
         self.existing_outgoing_interfaces = []
 

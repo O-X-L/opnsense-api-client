@@ -27,8 +27,8 @@ class ModuleInput:
     def warn(self, msg: str):
         self.c.warn(msg)
 
-    def fail_json(self, msg: str):
-        self.c.fail_json(msg)
+    def fail(self, msg: str):
+        self.c.fail(msg)
 
     def error(self, msg: str):
         self.c.error(msg)

@@ -1,9 +1,6 @@
-from ..base.api import single_post
-
-
 class SavePoint:
     def __init__(self, m, result: dict, controller: str = None):
-        self.m = module
+        self.m = m
         self.r = result
         self.c = controller if controller is not None else self.m.params['controller']
         self.revision = self.m.params['revision']
@@ -15,7 +12,7 @@ class SavePoint:
     def create(self) -> str:
         if not self.m.check_mode:
             if self.revision is None:
-                response = single_post(
+                response = self.m.c.session.post(
                     module=self.m,
                     cnf={
                         'command': 'savepoint',
@@ -24,20 +21,20 @@ class SavePoint:
                 )
 
                 if 'revision' not in response:
-                    self.m.fail_json(msg='Failed to create savepoint!')
+                    self.m.fail(msg='Failed to create savepoint!')
 
                 return response['revision']
 
-            self.m.fail_json(f"Unable to create savepoint - a revision ('{self.revision}') exists!")
+            self.m.fail(f"Unable to create savepoint - a revision ('{self.revision}') exists!")
 
     def _check_revision(self, action: str) -> None:
         if self.revision is None:
-            self.m.fail_json(f"Unable to run action '{action}' - a target revision needs to be provided!")
+            self.m.fail(f"Unable to run action '{action}' - a target revision needs to be provided!")
 
     def apply(self) -> None:
         if not self.m.check_mode:
             self._check_revision(action='apply')
-            single_post(
+            self.m.c.session.post(
                 module=self.m,
                 cnf={
                     'command': 'apply',
@@ -49,7 +46,7 @@ class SavePoint:
     def cancel_rollback(self) -> None:
         if not self.m.check_mode:
             self._check_revision(action='cancel_rollback')
-            single_post(
+            self.m.c.session.post(
                 module=self.m,
                 cnf={
                     'command': 'cancelRollback',
@@ -61,7 +58,7 @@ class SavePoint:
     def revert(self) -> None:
         if not self.m.check_mode:
             self._check_revision(action='revert')
-            single_post(
+            self.m.c.session.post(
                 module=self.m,
                 cnf={
                     'command': 'revert',

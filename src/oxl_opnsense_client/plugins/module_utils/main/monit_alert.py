@@ -33,8 +33,8 @@ class Alert(BaseModule):
     }
     EXIST_ATTR = 'alert'
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.alert = {}
 
     def check(self) -> None:
@@ -42,7 +42,7 @@ class Alert(BaseModule):
             validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
 
             if not is_valid_email(self.p['recipient']):
-                self.m.fail_json(
+                self.m.fail(
                     f"The recipient value '{self.p['recipient']}' is not a "
                     f"valid email address!"
                 )

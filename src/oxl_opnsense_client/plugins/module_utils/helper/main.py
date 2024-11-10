@@ -180,7 +180,7 @@ def get_multiple_matching(
 
 def validate_port(m, port: (int, str), error_func: Callable = None) -> bool:
     if error_func is None:
-        error_func = m.fail_json
+        error_func = m.fail
 
     if port == 'any' or is_unset(port):
         return True
@@ -202,7 +202,7 @@ def validate_int_fields(
         error_func: Callable = None
 ):
     if error_func is None:
-        error_func = m.fail_json
+        error_func = m.fail
 
     for field, valid in field_minmax.items():
         try:
@@ -371,7 +371,7 @@ def validate_str_fields(
                 exit_bug("Values of 'STR_LEN_VALIDATIONS' must have a 'min' and 'max' attribute!")
 
             if min_max_length['min'] < len(data[field]) > min_max_length['max']:
-                m.fail_json(
+                m.fail(
                     f"Value of field '{field}' is not valid - "
                     f"Invalid length must be between {min_max_length['min']} and {min_max_length['max']}!"
                 )
@@ -382,7 +382,7 @@ def validate_str_fields(
                 continue
 
             if regex_match(regex, data[field]) is None:
-                m.fail_json(
+                m.fail(
                     f"Value of field '{field}' is not valid - "
                     f"Must match regex '{regex}'!"
                 )

@@ -12,7 +12,7 @@ def _opn_reachable_ipv(m, address_family: int) -> bool:
         s.settimeout(CONNECTION_TEST_TIMEOUT)
         return s.connect_ex((
             m.params['firewall'],
-            m.params['api_port']
+            m.params['port']
         )) == 0
 
 

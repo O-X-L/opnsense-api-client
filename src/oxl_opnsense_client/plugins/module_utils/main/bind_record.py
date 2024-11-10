@@ -31,7 +31,7 @@ class Record(BaseModule):
             self, m, result: dict, cnf: dict = None,
             session: Session = None, fail_verify: bool = True, fail_proc: bool = True
     ):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+        BaseModule.__init__(self=self, m=m, r=result)
         self.p = self.m.params if cnf is None else cnf  # to allow override by bind_record_multi
         self.fail_verify = fail_verify
         self.fail_proc = fail_proc
@@ -54,9 +54,9 @@ class Record(BaseModule):
 
             else:
                 if self.p['type'] == 'A' and not is_ip4(self.p['value']):
-                    self.m.fail_json(f"Value '{self.p['value']}' is not a valid IPv4-address!")
+                    self.m.fail(f"Value '{self.p['value']}' is not a valid IPv4-address!")
                 elif self.p['type'] == 'AAAA' and not is_ip6(self.p['value']):
-                    self.m.fail_json(f"Value '{self.p['value']}' is not a valid IPv6-address!")
+                    self.m.fail(f"Value '{self.p['value']}' is not a valid IPv6-address!")
 
         # custom matching as dns round-robin allows for multiple records to match..
         if self.existing_entries is None:
@@ -117,7 +117,7 @@ class Record(BaseModule):
 
     def _error(self, msg: str, verification: bool = True) -> None:
         if (verification and self.fail_verify) or (not verification and self.fail_proc):
-            self.m.fail_json(msg)
+            self.m.fail(msg)
 
         else:
             self.m.warn(msg)

@@ -38,5 +38,5 @@ class General(GeneralModule):
         'originate_metric': {'min': 0, 'max': 16777214},
     }
 
-    def __init__(self, m, result: dict, session: Session = None):
-        GeneralModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        GeneralModule.__init__(self=self, m=m, r=result)

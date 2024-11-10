@@ -66,27 +66,27 @@ class General(GeneralModule):
         },
     }
 
-    def __init__(self, m, result: dict, session: Session = None):
-        GeneralModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        GeneralModule.__init__(self=self, m=m, r=result)
 
     def check(self) -> None:
         # pylint: disable=W0201
         validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
 
         if len(self.p['interfaces']) == 0:
-            self.m.fail_json("You need to supply 'interfaces'!")
+            self.m.fail("You need to supply 'interfaces'!")
 
         if self.p['profile'] == 'custom' and (
                 is_unset(self.p['profile_toclient_groups']) or is_unset(self.p['profile_toserver_groups'])
         ):
-            self.m.fail_json(
+            self.m.fail(
                 "You need to supply 'profile_toclient_groups' and 'profile_toserver_groups' "
                 "when using the profile 'custom'!"
             )
 
         for net in self.p['local_networks']:
             if not is_ip_or_network(net):
-                self.m.fail_json(
+                self.m.fail(
                     f"It seems you provided an invalid network in 'local_networks': '{net}'"
                 )
 

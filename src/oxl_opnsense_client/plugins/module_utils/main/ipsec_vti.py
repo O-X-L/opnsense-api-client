@@ -40,8 +40,8 @@ class Vti(BaseModule):
     }
     EXIST_ATTR = 'vti'
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.vti = {}
 
     def check(self) -> None:
@@ -51,7 +51,7 @@ class Vti(BaseModule):
             if is_unset(self.p['local_address']) or is_unset(self.p['remote_address']) or \
                     is_unset(self.p['local_tunnel_address']) or \
                     is_unset(self.p['remote_tunnel_address']):
-                self.m.fail_json(
+                self.m.fail(
                     "You need to provide a 'local_address', 'remote_address', "
                     "'local_tunnel_address' and 'remote_tunnel_address' to create an IPSec VTI!"
                 )

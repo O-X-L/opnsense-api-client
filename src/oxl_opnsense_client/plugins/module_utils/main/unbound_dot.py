@@ -29,8 +29,8 @@ class DnsOverTls(BaseModule):
     }
     EXIST_ATTR = 'dot'
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.dot = {}
 
     def check(self) -> None:
@@ -41,7 +41,7 @@ class DnsOverTls(BaseModule):
         if not is_unset(self.p['verify']) and \
                 not is_ip(self.p['verify']) and \
                 not valid_hostname(self.p['verify']):
-            self.m.fail_json(
+            self.m.fail(
                 f"Verify-value '{self.p['verify']}' is neither a valid IP-Address "
                 f"nor a valid hostname!"
             )

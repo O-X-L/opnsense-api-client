@@ -8,7 +8,7 @@ class Package:
     API_CONT = 'firmware'
     TIMEOUT = 60.0
 
-    def __init__(self, m, name: str, session: Session = None):
+    def __init__(self, m, name: str):
         self.m = m
         self.p = m.params
         self.s = Session(
@@ -55,7 +55,7 @@ class Package:
     def check_lock(self) -> None:
         if self.p['action'] in ['reinstall', 'remove', 'install'] and \
                 self.r['diff']['before']['locked']:
-            self.m.fail_json(
+            self.m.fail(
                 f"Unable to execute action '{self.p['action']}' - "
                 f"package is locked!"
             )
@@ -67,7 +67,7 @@ class Package:
         })
 
         if str(status).find(self.UPGRADE_MSG) != -1:
-            self.m.fail_json(
+            self.m.fail(
                 f"Unable to execute action '{self.p['action']}' - "
                 f"system needs to be upgraded beforehand!"
             )

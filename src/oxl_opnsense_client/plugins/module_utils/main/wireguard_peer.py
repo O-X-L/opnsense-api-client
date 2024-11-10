@@ -46,8 +46,8 @@ class Peer(BaseModule):
     }
     EXIST_ATTR = 'peer'
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.peer = {}
         self.existing_peers = None
 

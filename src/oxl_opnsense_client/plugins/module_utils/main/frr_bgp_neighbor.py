@@ -69,8 +69,8 @@ class Neighbor(BaseModule):
         'existing_maps': 'bgp.routemaps.routemap',
     }
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.neighbor = {}
         self.existing_prefixes = None
         self.existing_maps = None

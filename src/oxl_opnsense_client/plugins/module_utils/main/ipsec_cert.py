@@ -30,14 +30,14 @@ class KeyPair(BaseModule):
     FIELDS_TYPING = {}
     TIMEOUT = 30.0  # ipsec reload
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.key = {}
 
     def check(self) -> None:
         if self.p['state'] == 'present':
             if is_unset(self.p['public_key']) or is_unset(self.p['private_key']):
-                self.m.fail_json(
+                self.m.fail(
                     "You need to supply both 'public_key' and "
                     "'private_key' to create an IPSec certificate!"
                 )
@@ -45,11 +45,11 @@ class KeyPair(BaseModule):
             pub_start, pub_end = '-----BEGIN PUBLIC KEY-----', '-----END PUBLIC KEY-----'
             if self.p['public_key'].find(pub_start) == -1 or \
                     self.p['public_key'].find(pub_end) == -1:
-                self.m.fail_json("The provided 'public_key' has an invalid format!")
+                self.m.fail("The provided 'public_key' has an invalid format!")
 
             priv_start, priv_end = '-----BEGIN RSA PRIVATE KEY-----', '-----END RSA PRIVATE KEY-----'
             if self.p['private_key'].find(priv_start) == -1 or self.p['private_key'].find(priv_end) == -1:
-                self.m.fail_json(
+                self.m.fail(
                     "The provided 'private_key' has an invalid format - should be "
                     "'RSA PRIVATE KEY'!"
                 )

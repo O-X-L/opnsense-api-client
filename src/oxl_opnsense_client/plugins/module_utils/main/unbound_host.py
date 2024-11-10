@@ -35,14 +35,14 @@ class Host(BaseModule):
         # 'value': 'mx',  # mx or server
     }
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.host = {}
 
     def check(self) -> None:
         if self.p['state'] == 'present':
             if is_unset(self.p['value']):
-                self.m.fail_json(
+                self.m.fail(
                     "You need to provide a 'value' to create a host-override!"
                 )
 
@@ -50,16 +50,16 @@ class Host(BaseModule):
 
         if self.p['record_type'] == 'MX':
             if not valid_hostname(self.p['value']):
-                self.m.fail_json(f"Value '{self.p['value']}' is not a valid hostname!")
+                self.m.fail(f"Value '{self.p['value']}' is not a valid hostname!")
 
         else:
             self.p['prio'] = None
 
             if self.p['state'] == 'present':
                 if self.p['record_type'] == 'A' and not is_ip4(self.p['value']):
-                    self.m.fail_json(f"Value '{self.p['value']}' is not a valid IPv4-address!")
+                    self.m.fail(f"Value '{self.p['value']}' is not a valid IPv4-address!")
                 elif self.p['record_type'] == 'AAAA' and not is_ip6(self.p['value']):
-                    self.m.fail_json(f"Value '{self.p['value']}' is not a valid IPv6-address!")
+                    self.m.fail(f"Value '{self.p['value']}' is not a valid IPv6-address!")
 
         self._base_check()
 

@@ -12,6 +12,6 @@ class Auth(BaseAuth):
     }
     API_KEY_PATH = 'swanctl.locals.local'
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseAuth.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseAuth.__init__(self=self, m=m, r=result)
         self.auth = {}

@@ -66,8 +66,8 @@ class General(GeneralModule):
         'port': {'min': 1, 'max': 65535},
     }
 
-    def __init__(self, m, result: dict, session: Session = None):
-        GeneralModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        GeneralModule.__init__(self=self, m=m, r=result)
         self.existing_acls = None
         self.acls_needed = False
 
@@ -82,12 +82,12 @@ class General(GeneralModule):
             if isinstance(self.p[field], list):
                 for ip in self.p[field]:
                     if not is_ip(ip, ignore_empty=True):
-                        self.m.fail_json(
+                        self.m.fail(
                             f"It seems you provided an invalid IP address as '{field}': '{ip}'"
                         )
 
                 if is_unset(self.p[field]):
-                    self.m.fail_json(
+                    self.m.fail(
                         f"You need to supply at least one value as '{field}'! "
                         'Leave it empty to only use localhost.'
                     )
@@ -95,7 +95,7 @@ class General(GeneralModule):
             else:
                 ip = self.p[field]
                 if not is_ip(ip, ignore_empty=True):
-                    self.m.fail_json(
+                    self.m.fail(
                         f"It seems you provided an invalid IP address as '{field}': '{ip}'"
                     )
 

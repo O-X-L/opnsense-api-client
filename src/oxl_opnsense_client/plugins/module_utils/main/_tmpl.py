@@ -38,8 +38,8 @@ class TMPL(BaseModule):
         'existing_additionalstuff': 'category.sub_category.additional',
     }
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.stuff = {}
         self.existing_additionalstuff = None
 
@@ -59,12 +59,12 @@ class TMPL(BaseModule):
         # basic validation of conditional parameters
         if not self.exists and self.p['state'] == 'present':
             if is_unset(self.p['value']):
-                self.m.fail_json('You need to provide values to create stuff!')
+                self.m.fail('You need to provide values to create stuff!')
 
     def _error(self, msg: str) -> None:
         # for special handling of errors
         if self.fail:
-            self.m.fail_json(msg)
+            self.m.fail(msg)
 
         else:
             self.m.warn(msg)

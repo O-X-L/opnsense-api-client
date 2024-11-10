@@ -17,17 +17,10 @@ _PLUGIN_PATH = _BASE_PATH / 'plugins'  / 'module_utils' / 'main'
 
 class Client:
     PARAMS = [
-        'firewall', 'port', 'token', 'secret', 'credential_file',
+        'firewall', 'port',
         'ssl_verify', 'ssl_ca_file', 'api_timeout', 'api_retries',
         'debug', 'profiling',
     ]
-    # for ansible
-    PARAM_ALIASES = {
-        'api_port': 'port',
-        'api_key': 'token',
-        'api_secret': 'secret',
-        'api_credential_file': 'credential_file',
-    }
 
     def __init__(
             self,
@@ -38,8 +31,6 @@ class Client:
     ):
         self.firewall = firewall
         self.port = port
-        self.token = token
-        self.secret = secret
         self.credential_file = credential_file
         self.ssl_verify = ssl_verify
         self.ssl_ca_file = ssl_ca_file
@@ -47,20 +38,19 @@ class Client:
         self.api_retries = api_retries
         self.debug = debug
         self.profiling = profiling
-
         self.shell = shell
 
-        self.params = {}
-        self._build_params()
+        self._api_token = token
+        self._api_secret = secret
+        self._load_credentials_from_file()
+
         self._validate_params()
-        self.session = Session(m=self)
+        self.session = Session(m=self, token=self._api_token, secret=self._api_secret)
+        self._validate_environment()
 
     def _validate_params(self):
-        if self.secret is None and self.credential_file is None:
+        if self._api_secret is None and self.credential_file is None:
             self.error('You need to either provide your API credentials (file or token + secret)!')
-
-        if not self.reachable():
-            self.error('The firewall is unreachable!')
 
         if self.credential_file is not None:
             self.credential_file = Path(self.credential_file)
@@ -72,8 +62,21 @@ class Client:
             if not self.ssl_ca_file.is_file():
                 self.error('The provided CA-File does not exist!')
 
+    def _validate_environment(self):
+        if not self.reachable():
+            self.error('The firewall is unreachable!')
+
+        if not self.is_opnsense():
+            self.warn('The target may not be an OPNsense!')
+
     def test(self) -> bool:
         t = self.reachable()
+        if t:
+            t = self.is_opnsense()
+
+        if t:
+            t = self.correct_credentials()
+
         if self.shell:
             print('OK' if t else 'UNREACHABLE')
 
@@ -94,10 +97,29 @@ class Client:
         except gaierror:
             return _reachable(AF_INET6)
 
-    def _build_params(self):
-        d = {k: getattr(self, k) for k in self.PARAMS}
-        da = {k: d[v] for k, v in self.PARAM_ALIASES.items()}
-        self.params = {**d, **da}
+    def is_opnsense(self) -> bool:
+        login_page = self.session.s.get(self.session.url)
+
+        if login_page.status_code != 200:
+            return False
+
+        return login_page.content.find(b'OPNsense') != -1
+
+    def correct_credentials(self) -> (bool, None):
+        if not self.reachable():
+            return None
+
+        try:
+            self.run_module('meta_list', params={'target': 'interface_vip'})
+            return True
+
+        except ClientFailure as e:
+            raise ValueError(e)
+            return False
+
+    @property
+    def params(self) -> dict:
+        return {k: getattr(self, k) for k in self.PARAMS}
 
     def run_module(self, name: str, params: dict, check_mode: bool = False) -> dict:
         name = name.lower()
@@ -123,8 +145,7 @@ class Client:
 
         raise ClientFailure(f"ERROR: {msg}")
 
-    # legacy name for ansible-compatibility
-    def fail_json(self, msg: str):
+    def fail(self, msg: str):
         self.error(msg)
 
     def warn(self, msg: str):
@@ -137,6 +158,48 @@ class Client:
     @staticmethod
     def info(msg: str):
         print(f"INFO: {msg}")
+
+    def _load_credentials_from_file(self) -> None:
+        if self.credential_file is None:
+            return
+
+        cred_file_info = Path(self.credential_file)
+
+        if cred_file_info.is_file():
+            cred_file_mode = oct(cred_file_info.stat().st_mode)[-3:]
+
+            if int(cred_file_mode[2]) != 0:
+                self.warn(
+                    f"Provided 'credential_file' at path "
+                    f"'{self.credential_file}' is world-readable "
+                    f"(mode {cred_file_mode})!"
+                )
+
+            with open(self.credential_file, 'r', encoding='utf-8') as file:
+                config = {}
+
+                for line in file.readlines():
+                    try:
+                        key, value = line.split('=', 1)
+                        config[key] = value.strip()
+
+                    except ValueError:
+                        pass
+
+                if 'key' not in config or 'secret' not in config:
+                    self.fail(
+                        f"Credential file '{self.credential_file}' "
+                        'could not be parsed!'
+                    )
+
+                self._api_token = config['key']
+                self._api_secret = config['secret']
+
+        else:
+            self.fail(
+                f"Provided 'credential_file' at path "
+                f"'{self.credential_file}' does not exist!"
+            )
 
     def __enter__(self):
         return self

@@ -59,8 +59,8 @@ class Client(BaseModule):
     EXIST_ATTR = 'instance'
     FIELDS_DIFF_EXCLUDE = ['vpnid', 'role']
 
-    def __init__(self, m, result: dict, session: Session = None):
-        BaseModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        BaseModule.__init__(self=self, m=m, r=result)
         self.instance = {}
 
     def check(self) -> None:

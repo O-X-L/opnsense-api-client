@@ -23,8 +23,8 @@ class DnsBL(GeneralModule):
         'list': ['type', 'lists', 'whitelists', 'blocklists', 'wildcards'],
     }
 
-    def __init__(self, m, result: dict, session: Session = None):
-        GeneralModule.__init__(self=self, m=m, r=result, s=session)
+    def __init__(self, m, result: dict):
+        GeneralModule.__init__(self=self, m=m, r=result)
 
     def check(self) -> None:
         # pylint: disable=W0201

@@ -32,7 +32,7 @@ def process(m, p: dict, r: dict) -> None:
     # checking if all rules should be purged
     if not p['force_all'] and is_unset(p['rules']) and \
             is_unset(p['filters']):
-        m.fail_json("You need to either provide 'rules' or 'filters'!")
+        m.fail("You need to either provide 'rules' or 'filters'!")
 
     if len(existing_rules) > 0:
         if p['force_all'] and is_unset(p['rules']) and \
