@@ -46,9 +46,25 @@ with Client(
     credential_file='/tmp/.opnsense.txt',
     # token='0pWN/C3tnXem6OoOp0zc9K5GUBoqBKCZ8jj8nc4LEjbFixjM0ELgEyXnb4BIqVgGNunuX0uLThblgp9Z',
     # secret='Vod5ug1kdSu3KlrYSzIZV9Ae9YFMgugCIZdIIYpefPQVhvp6KKuT7ugUIxCeKGvN6tj9uqduOzOzUlv',
-) as client:
-    client.test()
-    > OK
+) as c:
+    c.test()
+    # True
+
+    ### CREATE / REMOVE ENTRIES ###
+    
+    c.run_module('syslog', params={'target': '192.168.0.1', 'port': 5303})
+    # {'error': None, 'result': {'changed': True, 'diff': {'after': {'uuid': None, 'rfc5424': False, 'enabled': True, 'target': '192.168.0.1', 'transport': 'udp4', 'facility': [], 'program': [], 'level': ['alert', 'crit', 'emerg', 'err', 'info', 'notice', 'warn'], 'certificate': '', 'port': 5303, 'description': ''}}}}
+    c.run_module('syslog', params={'target': '192.168.0.1', 'port': 5303, 'state': 'absent'})
+    # {'error': None, 'result': {'changed': True, 'diff': {'before': {'uuid': '2500dadc-ce43-4e23-994e-860516b0ef45', 'rfc5424': False, 'enabled': True, 'target': '192.168.0.1', 'transport': 'udp4', 'facility': [], 'program': [], 'level': ['alert', 'crit', 'emerg', 'err', 'info', 'notice', 'warn'], 'certificate': '', 'port': 5303, 'description': ''}}}}
+    c.run_module('syslog', params={'target': '192.168.0.1', 'port': 5303, 'state': 'absent'})
+    # {'error': None, 'result': {'changed': False, 'diff': {}}}
+
+    ### CHECK MODE (DRY-RUN) ###
+    
+    c.run_module('syslog', check_mode=True, params={'target': '192.168.0.1', 'port': 5303})
+    # {'error': None, 'result': {'changed': True, 'diff': {'before': {'uuid': '7f3aba31-07ca-4cb9-b93d-dc442a5291c7', 'rfc5424': False, 'enabled': True, 'target': '192.168.0.1', 'transport': 'udp4', 'facility': [], 'program': [], 'level': ['alert', 'crit', 'emerg', 'err', 'info', 'notice', 'warn'], 'certificate': '', 'port': 5303, 'description': ''}}}}
+    c.run_module('syslog', params={'target': '192.168.0.1', 'port': 5303, 'state': 'absent'})
+    # {'error': None, 'result': {'changed': False, 'diff': {}}}
 ```
 
 
@@ -66,31 +82,54 @@ c = Client(firewall='<IP>', token='<TOKEN>', secret='<SECRET>')
 
 ----
 
-### Debug Output
-
-This will show you the performed API calls and their JSON payload.
-
-```python3
-from oxl_opnsense_client import Client
-c = Client(firewall='<IP>', credential_file='/home/<YOU>/.opnsense.txt', debug=True)
-
-# Example output:
-# INFO: REQUEST: GET | URL: https://<IP>/api/syslog/settings/get
-# INFO: RESPONSE: '{'status_code': 200, '_request': <Request('GET', 'https://<IP>/api/syslog/settings/get')>, '_num_bytes_downloaded': 123, '_elapsed': datetime.timedelta(microseconds=191725), '_content': b'{"syslog":{"general":{"enabled":"1","loglocal":"1","maxpreserve":"31","maxfilesize":""},"destinations":{"destination":[]}}}'}'
-# INFO: REQUEST: POST | URL: https://<IP>/api/syslog/settings/addDestination | HEADERS: '{'Content-Type': 'application/json'}' | DATA: '{"destination": {"rfc5424": 0, "enabled": 1, "hostname": "192.168.0.1", "transport": "udp4", "facility": "", "program": "", "level": "alert,crit,emerg,err,info,notice,warn", "certificate": "None", "port": 5303, "description": "None"}}'
-# INFO: RESPONSE: '{'status_code': 200, '_request': <Request('POST', 'https://<IP>/api/syslog/settings/addDestination')>, '_num_bytes_downloaded': 111, '_elapsed': datetime.timedelta(microseconds=78827), '_content': b'{"result":"failed","validations":{"destination.certificate":"Please select a valid certificate from the list"}}'}'
-```
-
-----
-
 ### SSL Verification
 
 ```python3
 from oxl_opnsense_client import Client
 
 # provide the path to your custom CA public-key
-c = Client(firewall='<IP>', credential_file='/home/<YOU>/.opnsense.txt', ssl_ca_file='/home/<YOU>/ca.crt')
+c = Client(
+    firewall='<IP>',
+    credential_file='/home/<YOU>/.opnsense.txt',
+    ssl_ca_file='/home/<YOU>/ca.crt',
+)
 
 # ONLY USE FOR TESTING PURPOSES => you can disable the certificate-verification
-c = Client(firewall='<IP>', credential_file='/home/<YOU>/.opnsense.txt', ssl_verify=False)
+c = Client(
+    firewall='<IP>',
+    credential_file='/home/<YOU>/.opnsense.txt',
+    ssl_verify=False,
+)
 ```
+
+----
+
+### Debug Output
+
+This will show you the performed API calls and their JSON payload.
+
+```python3
+from oxl_opnsense_client import Client
+c = Client(
+    firewall='<IP>',
+    credential_file='/home/<YOU>/.opnsense.txt',
+    debug=True,
+)
+
+c.run_module('syslog', params={'target': '192.168.0.1', 'port': 5303})
+# INFO: REQUEST: GET | URL: https://172.17.1.52/api/syslog/settings/get
+# INFO: RESPONSE: '{'status_code': 200, '_request': <Request('GET', 'https://172.17.1.52/api/syslog/settings/get')>, '_num_bytes_downloaded': 123, '_elapsed': datetime.timedelta(microseconds=194859), '_content': b'{"syslog":{"general":{"enabled":"1","loglocal":"1","maxpreserve":"31","maxfilesize":""},"destinations":{"destination":[]}}}'}'
+# INFO: REQUEST: POST | URL: https://172.17.1.52/api/syslog/settings/addDestination | HEADERS: '{'Content-Type': 'application/json'}' | DATA: '{"destination": {"rfc5424": 0, "enabled": 1, "hostname": "192.168.0.1", "transport": "udp4", "facility": "", "program": "", "level": "alert,crit,emerg,err,info,notice,warn", "certificate": "", "port": 5303, "description": ""}}'
+# INFO: RESPONSE: '{'status_code': 200, '_request': <Request('POST', 'https://172.17.1.52/api/syslog/settings/addDestination')>, '_num_bytes_downloaded': 64, '_elapsed': datetime.timedelta(microseconds=61852), '_content': b'{"result":"saved","uuid":"ed90d52a-63ac-4d7c-a35b-4f250350f85d"}'}'
+# INFO: REQUEST: POST | URL: https://172.17.1.52/api/syslog/service/reconfigure | HEADERS: '{}'
+# INFO: RESPONSE: '{'status_code': 200, '_request': <Request('POST', 'https://172.17.1.52/api/syslog/service/reconfigure')>, '_num_bytes_downloaded': 15, '_elapsed': datetime.timedelta(microseconds=657156), '_content': b'{"status":"ok"}'}'
+```
+
+This information is also logged to files:
+
+```bash
+ls /tmp/opnsense_client/
+# api_calls.log  syslog.log
+```
+
+The module-specific logs contain performance-profiling.

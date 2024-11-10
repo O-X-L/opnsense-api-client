@@ -132,7 +132,7 @@ FAIL_MOD_ARG_MULTI = dict(
 )
 
 DEBUG_CONFIG = dict(
-    path_log='/tmp/ansibleguy.opnsense',
+    path_log='/tmp/opnsense_client',
     log_api_calls='api_calls.log',
 )
 

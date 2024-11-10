@@ -1,33 +1,17 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+from ..module_input import validate_input, ModuleInput, valid_results
+from ..module_utils.helper.wrapper import module_wrapper
+from ..module_utils.defaults.main import RELOAD_MOD_ARG
+from ..module_utils.main.webproxy_cache import Cache
 
-# Copyright: (C) 2024, AnsibleGuy <guy@ansibleguy.net>
-# GNU General Public License v3.0+ (see https://www.gnu.org/licenses/gpl-3.0.txt)
-
-from ansible.module_utils.basic import AnsibleModule
-
-from ansible_collections.ansibleguy.opnsense.plugins.module_utils.base.handler import \
-    module_dependency_error, MODULE_EXCEPTIONS
-
-try:
-    from ansible_collections.ansibleguy.opnsense.plugins.module_utils.helper.wrapper import module_wrapper
-    from ansible_collections.ansibleguy.opnsense.plugins.module_utils.defaults.main import \
-        OPN_MOD_ARGS, RELOAD_MOD_ARG
-    from ansible_collections.ansibleguy.opnsense.plugins.module_utils.main.webproxy_cache import Cache
-
-except MODULE_EXCEPTIONS:
-    module_dependency_error()
-
-
-# DOCUMENTATION = 'https://opnsense.ansibleguy.net/en/latest/modules/webproxy.html'
-# EXAMPLES = 'https://opnsense.ansibleguy.net/en/latest/modules/webproxy.html'
 
 BLANK_VALUES = {
     'memory_cache_mode': 'default',
 }
 
 
-def run_module():
+def run_module(module_input: ModuleInput, result: dict = None) -> dict:
+    result = valid_results(result)
+
     module_args = dict(
         memory_mb=dict(
             type='int', required=False, default=256, aliases=['memory', 'mem'],
@@ -85,30 +69,6 @@ def run_module():
         **RELOAD_MOD_ARG,
     )
 
-    result = dict(
-        changed=False,
-        diff={
-            'before': {},
-            'after': {},
-        }
-    )
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True,
-    )
-
-    for field, value in BLANK_VALUES.items():
-        if module.params[field] == value:
-            module.params[field] = ''  # BlankDesc
-
-    module_wrapper(Cache(module=module, result=result))
-    module.exit_json(**result)
-
-
-def main():
-    run_module()
-
-
-if __name__ == '__main__':
-    main()
+    validate_input(i=module_input, definition=module_args)
+    module_wrapper(Cache(m=module_input, result=result))
+    return result

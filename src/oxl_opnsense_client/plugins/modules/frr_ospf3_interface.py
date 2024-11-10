@@ -1,7 +1,7 @@
 from ..module_input import validate_input, ModuleInput, valid_results
 from ..module_utils.helper.wrapper import module_wrapper
 from ..module_utils.defaults.main import STATE_MOD_ARG, RELOAD_MOD_ARG
-from ..module_utils.main.frr_bgp_as_path import AsPath
+from ..module_utils.main.frr_ospf3_interface import Interface
 
 
 def run_module(module_input: ModuleInput, result: dict = None) -> dict:
@@ -42,5 +42,5 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
     )
 
     validate_input(i=module_input, definition=module_args)
-    module_wrapper(AsPath(m=module_input, result=result))
+    module_wrapper(Interface(m=module_input, result=result))
     return result
