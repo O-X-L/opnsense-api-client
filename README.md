@@ -1,5 +1,8 @@
 # OPNSense API Client
 
+[![Lint](https://github.com/O-X-L/opnsense-api-client/actions/workflows/lint.yml/badge.svg)](https://github.com/O-X-L/opnsense-api-client/actions/workflows/lint.yml)
+[![Test](https://github.com/O-X-L/opnsense-api-client/actions/workflows/test.yml/badge.svg)](https://github.com/O-X-L/opnsense-api-client/actions/workflows/test.yml)
+
 This is a Python3 client for interacting with the official OPNSense API.
 
 It enables simple management and automation of OPNSense firewalls. An interactive CLI interface might be added later on.
