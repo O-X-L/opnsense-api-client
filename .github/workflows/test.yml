@@ -9,6 +9,7 @@ on:
       - '**.py'
       - '.github/workflows/test.yml'
       - 'requirements_test.txt'
+      - '.pytest.ini'
   pull_request:
     branches: [latest]
     paths:
@@ -16,6 +17,7 @@ on:
       - '**.yml'
       - '.github/workflows/test.yml'
       - 'requirements_test.txt'
+      - '.pytest.ini'
 jobs:
   build:
     runs-on: ubuntu-latest
