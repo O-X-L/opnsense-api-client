@@ -2,6 +2,7 @@
 
 [![Lint](https://github.com/O-X-L/opnsense-api-client/actions/workflows/lint.yml/badge.svg)](https://github.com/O-X-L/opnsense-api-client/actions/workflows/lint.yml)
 [![Test](https://github.com/O-X-L/opnsense-api-client/actions/workflows/unittest.yml/badge.svg)](https://github.com/O-X-L/opnsense-api-client/actions/workflows/unittest.yml)
+[![PyPI - Version](https://img.shields.io/pypi/v/oxl-opnsense-client?color=green)](https://pypi.org/project/oxl-opnsense-client/)
 
 This is a Python3 client for interacting with the official OPNSense API.
 
