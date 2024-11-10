@@ -1,9 +1,8 @@
 from ipaddress import IPv6Address, IPv4Address, AddressValueError, NetmaskValueError
 
-from ..base.api import     Session
-from ..helper.main import     is_ip, validate_port, is_unset
+from ..helper.main import is_ip, validate_port, is_unset
 from ..base.cls import BaseModule
-from ..helper.validate import     is_valid_domain
+from ..helper.validate import is_valid_domain
 
 
 class Syslog(BaseModule):

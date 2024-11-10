@@ -72,11 +72,11 @@ def validate_input(i: ModuleInput, definition: dict):
                 exit_cnf(f"The parameter '{k}' has an invalid value - must be one of: {d['choices']}")
 
             elif isinstance(normalized_params[k], list):
-               for e in normalized_params[k]:
-                   if e not in d['choices']:
-                       exit_cnf(
-                           f"The parameter '{k}' has an invalid value - have to be one or multiple of: {d['choices']}"
-                       )
+                for e in normalized_params[k]:
+                    if e not in d['choices']:
+                        exit_cnf(
+                            f"The parameter '{k}' has an invalid value - have to be one or multiple of: {d['choices']}"
+                        )
 
 
     i.user_params = normalized_params

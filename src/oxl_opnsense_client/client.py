@@ -6,6 +6,7 @@ from .exceptions import ClientFailure, ModuleFailure
 from .plugins.module_utils.base.api import Session
 from .plugins.module_input import ModuleInput, empty_results
 
+# pylint: disable=W0401,W0614
 from .plugins.modules import *
 
 _MODULES = [
@@ -113,14 +114,14 @@ class Client:
             self.run_module('meta_list', params={'target': 'interface_vip'})
             return True
 
-        except ClientFailure as e:
-            raise ValueError(e)
+        except ClientFailure:
             return False
 
     @property
     def params(self) -> dict:
         return {k: getattr(self, k) for k in self.PARAMS}
 
+    # pylint: disable=W0612,W0123
     def run_module(self, name: str, params: dict, check_mode: bool = False) -> dict:
         name = name.lower()
         if name not in _MODULES:

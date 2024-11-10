@@ -1,7 +1,6 @@
-from ..base.handler import     ModuleSoftError
-from ..base.api import     Session
-from ..helper.alias import     validate_values, filter_builtin_alias
-from ..helper.main import     get_simple_existing, simplify_translate, is_unset
+from ..base.handler import ModuleSoftError
+from ..helper.alias import validate_values, filter_builtin_alias
+from ..helper.main import get_simple_existing, simplify_translate, is_unset
 from ..base.cls import BaseModule
 
 
@@ -36,7 +35,7 @@ class Alias(BaseModule):
 
     def __init__(
             self, m, result: dict, cnf: dict = None,
-            session: Session = None, fail_verify: bool = True, fail_proc: bool = True
+            fail_verify: bool = True, fail_proc: bool = True
     ):
         BaseModule.__init__(self=self, m=m, r=result)
         self.fail_verify = fail_verify

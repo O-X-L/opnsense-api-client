@@ -1,5 +1,4 @@
-from ..base.api import     Session
-from ..main.ipsec_auth import     BaseAuth
+from ..main.ipsec_auth import BaseAuth
 
 
 class Auth(BaseAuth):

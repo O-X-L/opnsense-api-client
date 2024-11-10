@@ -1,5 +1,4 @@
-from ..base.api import     Session
-from ..helper.main import     validate_str_fields, is_ip_or_network, is_unset
+from ..helper.main import validate_str_fields, is_ip_or_network, is_unset
 from ..base.cls import BaseModule
 
 
@@ -35,7 +34,7 @@ class Acl(BaseModule):
 
     def check(self) -> None:
         validate_str_fields(
-            module=self.m, data=self.p,
+            m=self.m, data=self.p,
             field_regex=self.STR_VALIDATIONS,
         )
 

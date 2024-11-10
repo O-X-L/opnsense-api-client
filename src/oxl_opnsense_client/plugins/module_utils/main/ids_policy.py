@@ -1,7 +1,6 @@
-from ..base.api import     Session
 from ..base.cls import BaseModule
 from ..main.ids_ruleset import Ruleset
-from ..helper.main import     is_unset, is_true, ensure_list
+from ..helper.main import is_unset, is_true, ensure_list
 
 
 class Policy(BaseModule):

@@ -36,7 +36,7 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
         )
 
     if not m.check_mode:
-        upgrade_status = get_upgrade_status(s)
+        upgrade_status = get_upgrade_status(m.c.session)
         if upgrade_status['status'] not in ['done', 'error']:
             m.fail(
                 f'System may be upgrading! System-actions are currently blocked! Details: {upgrade_status}'

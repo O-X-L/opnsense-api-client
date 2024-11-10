@@ -1,6 +1,5 @@
-from ..base.handler import     ModuleSoftError
-from ..base.api import     Session
-from ..helper.main import     get_multiple_matching, is_unset, is_ip4, is_ip6
+from ..base.handler import ModuleSoftError
+from ..helper.main import get_multiple_matching, is_unset, is_ip4, is_ip6
 from ..base.cls import BaseModule
 
 
@@ -29,7 +28,7 @@ class Record(BaseModule):
 
     def __init__(
             self, m, result: dict, cnf: dict = None,
-            session: Session = None, fail_verify: bool = True, fail_proc: bool = True
+            fail_verify: bool = True, fail_proc: bool = True
     ):
         BaseModule.__init__(self=self, m=m, r=result)
         self.p = self.m.params if cnf is None else cnf  # to allow override by bind_record_multi
@@ -90,7 +89,7 @@ class Record(BaseModule):
                 )
 
             self.existing = get_multiple_matching(
-                module=self.m, existing_items=self.existing_entries,
+                m=self.m, existing_items=self.existing_entries,
                 compare_item=self.p, match_fields=self.p['match_fields'],
                 simplify_func=self.b.simplify_existing,
             )

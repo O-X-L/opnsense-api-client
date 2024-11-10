@@ -1,7 +1,6 @@
-from ..base.api import     Session
-from ..helper.main import     is_unset, validate_int_fields, validate_str_fields
+from ..helper.main import is_unset, validate_int_fields, validate_str_fields
 from ..base.cls import BaseModule
-from ..base.handler import     ModuleSoftError
+from ..base.handler import ModuleSoftError
 
 
 class BaseAuth(BaseModule):
@@ -42,8 +41,8 @@ class BaseAuth(BaseModule):
         'existing_remote_auth': 'swanctl.remotes.remote',
     }
 
-    def __init__(self, m, r: dict, s: Session = None):
-        BaseModule.__init__(self=self, m=m, r=r, s=s)
+    def __init__(self, m, r: dict):
+        BaseModule.__init__(self=self, m=m, r=r)
         self.auth = {}
         self.existing_conns = None
         self.pubkey_link_found = False
@@ -56,7 +55,7 @@ class BaseAuth(BaseModule):
         if self.p['state'] == 'present':
             validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
             validate_str_fields(
-                module=self.m, data=self.p, allow_empty=True,
+                m=self.m, data=self.p, allow_empty=True,
                 field_minmax_length=self.STR_LEN_VALIDATIONS
             )
 

@@ -1,6 +1,5 @@
-from ..base.api import     Session
 from ..base.cls import BaseModule
-from ..helper.main import     to_digit
+from ..helper.main import to_digit
 
 
 class Rule(BaseModule):

@@ -1,6 +1,6 @@
 from ..module_input import validate_input, ModuleInput, valid_results
 from ..module_utils.helper.wrapper import module_wrapper
-from ..module_utils.defaults.main import STATE_MOD_ARG, RELOAD_MOD_ARG
+from ..module_utils.defaults.main import RELOAD_MOD_ARG
 from ..module_utils.main.webproxy_auth import General
 
 

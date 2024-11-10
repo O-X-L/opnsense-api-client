@@ -1,17 +1,15 @@
 from ..helper.main import is_unset
-from ..helper.alias import     check_purge_configured, builtin_alias
-from ..helper.purge import     purge, check_purge_filter
-from ..base.api import Session
+from ..helper.alias import check_purge_configured, builtin_alias
+from ..helper.purge import purge, check_purge_filter
 from ..main.alias import Alias
 from ..main.rule import Rule
 
 
 # pylint: disable=R0915
 def process(m, p: dict, r: dict) -> None:
-    s = Session(m=m)
-    meta_alias = Alias(m=m, session=s, result={})
+    meta_alias = Alias(m=m, result={})
     existing_aliases = meta_alias.get_existing()
-    existing_rules = Rule(m=m, session=s, result={}).get_existing()
+    existing_rules = Rule(m=m, result={}).get_existing()
     aliases_to_purge = []
 
     def obj_func(alias_to_purge: dict) -> Alias:
@@ -25,7 +23,6 @@ def process(m, p: dict, r: dict) -> None:
             m=m,
             result={'changed': False, 'diff': {'before': {}, 'after': {}}},
             cnf=alias_to_purge,
-            session=s,
             fail_verify=p['fail_all'],
             fail_proc=p['fail_all'],
         )
@@ -83,5 +80,3 @@ def process(m, p: dict, r: dict) -> None:
 
     if r['changed'] and p['reload']:
         meta_alias.reload()
-
-    s.close()

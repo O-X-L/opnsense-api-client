@@ -1,6 +1,5 @@
-from ..base.api import     Session
 from ..base.cls import BaseModule
-from ..helper.main import     is_true, to_digit
+from ..helper.main import is_true, to_digit
 
 
 class Ruleset(BaseModule):

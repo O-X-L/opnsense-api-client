@@ -85,4 +85,3 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
     validate_input(i=module_input, definition=module_args)
     module_wrapper(Child(m=module_input, result=result))
     return result
-

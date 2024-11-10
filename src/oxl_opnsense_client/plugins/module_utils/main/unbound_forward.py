@@ -1,6 +1,5 @@
-from ..base.api import     Session
-from ..helper.unbound import     validate_domain
-from ..helper.main import     validate_port, is_true, is_unset
+from ..helper.unbound import validate_domain
+from ..helper.main import validate_port, is_true, is_unset
 from ..base.cls import BaseModule
 
 

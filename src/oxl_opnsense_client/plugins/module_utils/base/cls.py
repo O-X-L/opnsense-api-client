@@ -83,7 +83,7 @@ class GeneralModule:
     # has only a single entry; cannot be deleted or created
     EXIST_ATTR = 'settings'
 
-    def __init__(self, m, r: dict, s: Session = None):
+    def __init__(self, m, r: dict):
         self.m = m
         self.s = SessionWrapper(
             s=self.m.c.session,

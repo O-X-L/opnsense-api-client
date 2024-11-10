@@ -1,5 +1,5 @@
-from ..base.api import     Session
-from ..helper.main import     validate_int_fields, is_unset, get_key_by_value_from_selection, get_key_by_value_end_from_selection
+from ..helper.main import validate_int_fields, is_unset, get_key_by_value_from_selection, \
+    get_key_by_value_end_from_selection
 from ..base.cls import BaseModule
 
 

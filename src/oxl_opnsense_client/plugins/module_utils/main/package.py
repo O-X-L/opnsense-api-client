@@ -1,5 +1,4 @@
-from ..helper.main import     is_true
-from ..base.api import     Session
+from ..helper.main import is_true
 
 
 class Package:
@@ -11,10 +10,7 @@ class Package:
     def __init__(self, m, name: str):
         self.m = m
         self.p = m.params
-        self.s = Session(
-            m=m,
-            timeout=self.TIMEOUT,
-        ) if session is None else session
+        self.s = m.c.session
         self.n = name
         self.r = {
             'changed': False, 'version': None,

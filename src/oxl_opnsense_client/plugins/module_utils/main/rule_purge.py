@@ -1,13 +1,11 @@
 from ..helper.main import is_unset
-from ..helper.purge import     purge, check_purge_filter
-from ..helper.rule import     check_purge_configured
-from ..base.api import Session
+from ..helper.purge import purge, check_purge_filter
+from ..helper.rule import check_purge_configured
 from ..main.rule import Rule
 
 
 def process(m, p: dict, r: dict) -> None:
-    s = Session(m=m)
-    existing_rules = Rule(m=m, session=s, result={}).get_existing()
+    existing_rules = Rule(m=m, result={}).get_existing()
     rules_to_purge = []
 
     def obj_func(rule_to_purge: dict) -> Rule:
@@ -21,7 +19,6 @@ def process(m, p: dict, r: dict) -> None:
             m=m,
             result={'changed': False, 'diff': {'before': {}, 'after': {}}},
             cnf=rule_to_purge,
-            session=s,
             fail_verify=p['fail_all'],
             fail_proc=p['fail_all'],
         )
@@ -69,5 +66,3 @@ def process(m, p: dict, r: dict) -> None:
                     m=m, result=r, diff_param=p['key_field'],
                     obj_func=obj_func, item_to_purge=rule
                 )
-
-    s.close()

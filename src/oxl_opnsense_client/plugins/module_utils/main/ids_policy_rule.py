@@ -1,6 +1,5 @@
-from ..base.api import     Session
 from ..base.cls import BaseModule
-from ..helper.main import     is_true
+from ..helper.main import is_true
 
 
 class Rule(BaseModule):

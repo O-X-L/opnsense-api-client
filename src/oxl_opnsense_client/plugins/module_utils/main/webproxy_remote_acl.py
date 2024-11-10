@@ -1,7 +1,6 @@
-from ..base.api import     Session
 from ..base.cls import BaseModule
 from ..helper.main import is_unset
-from ..helper.validate import     is_valid_url
+from ..helper.validate import is_valid_url
 
 
 class Acl(BaseModule):

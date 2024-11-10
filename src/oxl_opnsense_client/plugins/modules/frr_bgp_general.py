@@ -33,6 +33,6 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
         **EN_ONLY_MOD_ARG,
     )
 
-    validate_input(i=module_input, definition=module_args)    
+    validate_input(i=module_input, definition=module_args)
     module_wrapper(General(m=module_input, result=result))
     return result

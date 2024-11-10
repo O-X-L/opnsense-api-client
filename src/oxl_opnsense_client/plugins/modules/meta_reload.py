@@ -1,6 +1,7 @@
 from ..module_input import validate_input, ModuleInput, valid_results
 
 
+# pylint: disable=R0912,R0915
 def run_module(module_input: ModuleInput, result: dict = None) -> dict:
     m = module_input
     result = valid_results(result)

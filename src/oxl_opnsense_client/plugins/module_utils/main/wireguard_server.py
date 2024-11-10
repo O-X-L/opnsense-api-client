@@ -1,5 +1,4 @@
-from ..base.api import     Session
-from ..helper.main import     validate_int_fields, validate_str_fields, is_ip, validate_port, is_ip_or_network, \
+from ..helper.main import validate_int_fields, validate_str_fields, is_ip, validate_port, is_ip_or_network, \
     is_unset
 from ..main.wireguard_peer import Peer
 from ..base.cls import BaseModule
@@ -61,7 +60,7 @@ class Server(BaseModule):
             validate_port(m=self.m, port=self.p['port'])
             validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
             validate_str_fields(
-                module=self.m, data=self.p,
+                m=self.m, data=self.p,
                 field_regex=self.STR_VALIDATIONS,
             )
 
@@ -110,9 +109,7 @@ class Server(BaseModule):
         existing = {}
 
         if self.existing_peers is None:
-            self.existing_peers = Peer(
-                module=self.m, result={}, session=self.s
-            ).get_existing()
+            self.existing_peers = Peer( m=self.m, result={}).get_existing()
 
         if len(self.p['peers']) > 0:
             for peer in self.existing_peers:

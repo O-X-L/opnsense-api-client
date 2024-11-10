@@ -1,15 +1,13 @@
-from ..base.handler import     ModuleSoftError
-from ..helper.multi import     validate_single, convert_aliases
-from ..defaults.rule import     RULE_MOD_ARGS, RULE_DEFAULTS, RULE_MOD_ARG_ALIASES
+from ..base.handler import ModuleSoftError
+from ..helper.multi import validate_single, convert_aliases
+from ..defaults.rule import RULE_MOD_ARGS, RULE_DEFAULTS, RULE_MOD_ARG_ALIASES
 from ..helper.main import diff_remove_empty
-from ..base.api import Session
 from ..main.rule import Rule
 
 
 # pylint: disable=R0915
 def process(m, p: dict, r: dict) -> None:
-    s = Session(m=m)
-    meta_rule = Rule(m=m, session=s, result={})
+    meta_rule = Rule(m=m, result={})
     existing_rules = meta_rule.get_existing()
 
     if isinstance(p['key_field'], list):
@@ -84,7 +82,6 @@ def process(m, p: dict, r: dict) -> None:
                 m=m,
                 result=rule_result,
                 cnf=rule_config,
-                session=s,
                 fail_verify=p['fail_verification'],
                 fail_proc=p['fail_processing'],
             )
@@ -108,4 +105,3 @@ def process(m, p: dict, r: dict) -> None:
             continue
 
     meta_rule.reload()
-    s.close()

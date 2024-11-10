@@ -1,7 +1,6 @@
 from ipaddress import ip_network
 
-from ..helper.main import     simplify_translate
-from ..base.api import     Session
+from ..helper.main import simplify_translate
 from ..base.cls import BaseModule
 
 

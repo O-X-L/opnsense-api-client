@@ -1,7 +1,6 @@
 from ipaddress import ip_address
 
-from ..helper.main import     validate_int_fields, is_ip6
-from ..base.api import     Session
+from ..helper.main import validate_int_fields, is_ip6
 from ..base.cls import BaseModule
 
 

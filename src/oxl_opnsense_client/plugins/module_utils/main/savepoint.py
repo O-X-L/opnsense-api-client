@@ -13,7 +13,6 @@ class SavePoint:
         if not self.m.check_mode:
             if self.revision is None:
                 response = self.m.c.session.post(
-                    module=self.m,
                     cnf={
                         'command': 'savepoint',
                         **self.call_cnf,
@@ -35,7 +34,6 @@ class SavePoint:
         if not self.m.check_mode:
             self._check_revision(action='apply')
             self.m.c.session.post(
-                module=self.m,
                 cnf={
                     'command': 'apply',
                     'params': [self.revision],
@@ -47,7 +45,6 @@ class SavePoint:
         if not self.m.check_mode:
             self._check_revision(action='cancel_rollback')
             self.m.c.session.post(
-                module=self.m,
                 cnf={
                     'command': 'cancelRollback',
                     'params': [self.revision],
@@ -59,7 +56,6 @@ class SavePoint:
         if not self.m.check_mode:
             self._check_revision(action='revert')
             self.m.c.session.post(
-                module=self.m,
                 cnf={
                     'command': 'revert',
                     'params': [self.revision],

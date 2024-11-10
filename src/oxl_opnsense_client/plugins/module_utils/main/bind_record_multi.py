@@ -1,16 +1,14 @@
-from ..base.handler import     ModuleSoftError
-from ..helper.multi import     validate_single, convert_aliases
-from ..defaults.bind_record import     RECORD_MOD_ARGS, RECORD_DEFAULTS, RECORD_MOD_ARG_ALIASES
+from ..base.handler import ModuleSoftError
+from ..helper.multi import validate_single, convert_aliases
+from ..defaults.bind_record import RECORD_MOD_ARGS, RECORD_DEFAULTS, RECORD_MOD_ARG_ALIASES
 from ..helper.main import diff_remove_empty
-from ..base.api import Session
 from ..main.bind_record import Record
 
 # pylint: disable=R0912,R0914,R0915
 
 
 def process(m, p: dict, r: dict) -> None:
-    s = Session(m=m)
-    meta_record = Record(m=m, session=s, result={})
+    meta_record = Record(m=m, result={})
     existing_records = meta_record.get_existing()
     existing_domains = meta_record.search_call_domains()
     existing_domain_mapping = {}
@@ -102,7 +100,6 @@ def process(m, p: dict, r: dict) -> None:
                 m=m,
                 result=record_result,
                 cnf=record_config,
-                session=s,
                 fail_verify=p['fail_verification'],
                 fail_proc=p['fail_processing'],
             )
@@ -128,4 +125,3 @@ def process(m, p: dict, r: dict) -> None:
             continue
 
     meta_record.reload()
-    s.close()

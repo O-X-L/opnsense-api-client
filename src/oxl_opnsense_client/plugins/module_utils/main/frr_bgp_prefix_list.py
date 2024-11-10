@@ -1,5 +1,4 @@
-from ..base.api import     Session
-from ..helper.main import     validate_int_fields, validate_str_fields, is_unset
+from ..helper.main import validate_int_fields, validate_str_fields, is_unset
 from ..base.cls import BaseModule
 
 
@@ -51,7 +50,7 @@ class Prefix(BaseModule):
                 )
 
             validate_str_fields(
-                module=self.m, data=self.p,
+                m=self.m, data=self.p,
                 field_regex=self.STR_VALIDATIONS,
             )
             validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)

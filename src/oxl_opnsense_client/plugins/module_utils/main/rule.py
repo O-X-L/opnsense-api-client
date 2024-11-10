@@ -1,7 +1,6 @@
-from ..base.handler import     ModuleSoftError
-from ..helper.main import     validate_int_fields
-from ..base.api import Session
-from ..helper.rule import     validate_values
+from ..base.handler import ModuleSoftError
+from ..helper.main import validate_int_fields
+from ..helper.rule import validate_values
 from ..base.cls import BaseModule
 
 
@@ -43,7 +42,7 @@ class Rule(BaseModule):
 
     def __init__(
             self, m, result: dict, cnf: dict = None,
-            session: Session = None, fail_verify: bool = True, fail_proc: bool = True
+            fail_verify: bool = True, fail_proc: bool = True
     ):
         BaseModule.__init__(self=self, m=m, r=result)
         self.p = self.m.params if cnf is None else cnf  # to allow override by rule_multi
@@ -74,7 +73,7 @@ class Rule(BaseModule):
     def check(self) -> None:
         if self.p['state'] == 'present':
             validate_int_fields(
-                module=self.m,
+                m=self.m,
                 data=self.p,
                 field_minmax=self.INT_VALIDATIONS,
                 error_func=self._error
@@ -86,7 +85,7 @@ class Rule(BaseModule):
         if self.p['state'] == 'present':
             validate_values(
                 error_func=self._error,
-                module=self.m,
+                m=self.m,
                 cnf=self.p
             )
             self.r['diff']['after'] = self.b.build_diff(data=self.p)

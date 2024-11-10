@@ -1,8 +1,7 @@
-from ..base.api import     Session
-from ..helper.main import     validate_int_fields, validate_str_fields, is_ip, validate_port, is_ip_or_network, \
+from ..helper.main import validate_int_fields, validate_str_fields, is_ip, validate_port, is_ip_or_network, \
     is_unset
 from ..base.cls import BaseModule
-from ..helper.validate import     is_valid_domain
+from ..helper.validate import is_valid_domain
 
 
 class Peer(BaseModule):
@@ -56,7 +55,7 @@ class Peer(BaseModule):
             validate_port(m=self.m, port=self.p['port'])
             validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
             validate_str_fields(
-                module=self.m, data=self.p,
+                m=self.m, data=self.p,
                 field_regex=self.STR_VALIDATIONS,
             )
 
