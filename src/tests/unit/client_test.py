@@ -8,14 +8,15 @@ def test_client_creation():
         token='<TOKEN>',
         secret='<SECRET>',
     )
+    assert c.reachable()
     del c
 
     with Client(
         firewall='www.google.com',
         token='<TOKEN>',
         secret='<SECRET>',
-    ) as _:
-        pass
+    ) as c:
+        assert c.reachable()
 
 
 def test_client_unreachable():
