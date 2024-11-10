@@ -2,3 +2,5 @@ __pychache__
 venv/
 .idea/
 src/oxl_opnsense_client.egg-info
+test.sh
+src/tests/integration/OPNsense.pem

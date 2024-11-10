@@ -38,10 +38,9 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements_test.txt >/dev/null
-          pip install -r requirements_build.txt >/dev/null
           pip install -r requirements.txt >/dev/null
 
       - name: Running Unit Tests
         run: |
           pytest --version
-          python3 -m pytest
+          python3 -m pytest -c .pytest.ini src/tests/unit/
