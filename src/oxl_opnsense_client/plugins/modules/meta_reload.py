@@ -125,6 +125,6 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
             target_inst.s.close()
 
     else:
-        m.fail_json(f"Got unsupported target: '{target}'")
+        m.fail(f"Got unsupported target: '{target}'")
 
     return result

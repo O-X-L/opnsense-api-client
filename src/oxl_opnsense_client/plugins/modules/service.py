@@ -79,7 +79,7 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
     service = SERVICES[name]
 
     if 'a' in service and action not in service['a']:
-        m.fail_json(
+        m.fail(
             f"Service '{name}' does not support the "
             f"provided action '{action}'! "
             f"Supported ones are: {service['a']}"

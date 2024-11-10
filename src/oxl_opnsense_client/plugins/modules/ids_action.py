@@ -39,7 +39,7 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
 
     action = m.params['action']
     if action == 'get_alert_info' and m.params['alert_id'] is None:
-        m.fail_json("You need to provide an Alert-ID as 'alert_id' to execute 'get_alert_info'!")
+        m.fail("You need to provide an Alert-ID as 'alert_id' to execute 'get_alert_info'!")
 
     # translate actions to api-commands
     cmd = action

@@ -31,7 +31,7 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
 
     else:
         if m.params['revision'] is None:
-            m.fail_json('You need to provide a revision to execute this action!')
+            m.fail('You need to provide a revision to execute this action!')
 
         if m.params['action'] == 'apply':
             sp.apply()

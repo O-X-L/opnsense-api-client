@@ -29,7 +29,7 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
     validate_input(i=module_input, definition=module_args)
 
     if m.params['action'] == 'upgrade' and not m.params['force_upgrade']:
-        m.fail_json(
+        m.fail(
             "If you really want to perform an upgrade - you need to additionally supply the 'force_upgrade' argument. "
             "WARNING: Using the 'upgrade' action is only recommended for test-environments. "
             "In production you should use the WebUI to upgrade!"
@@ -38,7 +38,7 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
     if not m.check_mode:
         upgrade_status = get_upgrade_status(s)
         if upgrade_status['status'] not in ['done', 'error']:
-            m.fail_json(
+            m.fail(
                 f'System may be upgrading! System-actions are currently blocked! Details: {upgrade_status}'
             )
 

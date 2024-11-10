@@ -16,7 +16,7 @@ try:
     from ansible_collections.ansibleguy.opnsense.plugins.module_utils.helper.main import \
         diff_remove_empty
     from ansible_collections.ansibleguy.opnsense.plugins.module_utils.defaults.main import \
-        OPN_MOD_ARGS, STATE_MOD_ARG, RELOAD_MOD_ARG, INFO_MOD_ARG, FAIL_MOD_ARG_MULTI
+        STATE_MOD_ARG, RELOAD_MOD_ARG, INFO_MOD_ARG, FAIL_MOD_ARG_MULTI
     from ansible_collections.ansibleguy.opnsense.plugins.module_utils.main.bind_record_multi import \
         process
 
