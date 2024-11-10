@@ -34,6 +34,7 @@ class ModuleInput:
         self.c.error(msg)
 
 
+# pylint: disable=R0915
 def validate_input(i: ModuleInput, definition: dict):
     p = i.user_params
     if len(p) == 0:

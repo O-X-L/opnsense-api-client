@@ -23,6 +23,7 @@ class Client:
         'debug', 'profiling',
     ]
 
+    # pylint: disable=R0913,R0917
     def __init__(
             self,
             firewall: str, token: str = None, secret: str = None, credential_file: str = None, port: int = 443,
