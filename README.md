@@ -1,5 +1,12 @@
 # OPNSense API Client
 
+**WARNING**:
+
+> This project is still in early development!
+> 
+> We still need to automate the update-process for syncing the upstream codebase of [the OPNsense Ansible-Module](https://github.com/O-X-L/ansible-opnsense)
+
+
 [![Lint](https://github.com/O-X-L/opnsense-api-client/actions/workflows/lint.yml/badge.svg)](https://github.com/O-X-L/opnsense-api-client/actions/workflows/lint.yml)
 [![Test](https://github.com/O-X-L/opnsense-api-client/actions/workflows/unittest.yml/badge.svg)](https://github.com/O-X-L/opnsense-api-client/actions/workflows/unittest.yml)
 [![PyPI - Version](https://img.shields.io/pypi/v/oxl-opnsense-client?color=green)](https://pypi.org/project/oxl-opnsense-client/)
@@ -11,8 +18,6 @@ It enables simple management and automation of OPNSense firewalls. An interactiv
 The base-code is a Fork of this [OPNSense Ansible-Collection](https://github.com/ansibleguy/collection_opnsense) that was refactored for use within raw Python.
 
 This can be useful if you want to automate your Infrastructure and do not use [Ansible](https://www.ansible.com/how-ansible-works/).
-
-**WARNING**: This project is still in early development! The forked code is pretty much stable, but the refactor may not yet be.
 
 ----
 
@@ -31,23 +36,13 @@ Get to know the available modules:
 
 ## Contribute
 
-Feel free to [report issues/bugs](https://github.com/O-X-L/opnsense-api-client/issues), [take part in discussions](https://github.com/O-X-L/opnsense-api-client/discussions), [add/extend tests](https://github.com/O-X-L/opnsense-api-client/tree/latest/src/tests) and [provide PRs to enhance or extend the codebase](https://github.com/O-X-L/opnsense-api-client/pulls).
+The codebase of this library will be automatically synced with the upstream code of [the OPNsense Ansible-Module](https://github.com/O-X-L/ansible-opnsense)!
+
+Thus, new features (*and feature-requests*) should be made there.
+
+Feel free to [report issues/bugs](https://github.com/O-X-L/opnsense-api-client/issues), [take part in discussions](https://github.com/O-X-L/opnsense-api-client/discussions) and [add/extend tests](https://github.com/O-X-L/opnsense-api-client/tree/latest/src/tests).
 
 Note: Only the [API-enabled](https://docs.opnsense.org/development/api.html) functionalities can be implemented.
-
-----
-
-## Advertisement
-
-* Need **professional support** for IT-Automation or OPNSense? Contact us:
-
-  E-Mail: [contact@oxl.at](mailto:contact@oxl.at)
-
-  Tel: [+43 3115 40 900 0](tel:+433115409000)
-
-  Web: [EN](https://www.o-x-l.com) | [DE](https://www.oxl.at)
-
-  Language: German or English
 
 ----
 
@@ -85,6 +80,7 @@ with Client(
     # {'error': None, 'result': {'changed': False, 'diff': {}}}
 ```
 
+----
 
 ### Credentials
 
