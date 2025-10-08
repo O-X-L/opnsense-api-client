@@ -1,5 +1,10 @@
-from ..helper.main import validate_int_fields, is_unset
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class RouteMap(BaseModule):
@@ -15,7 +20,6 @@ class RouteMap(BaseModule):
     API_MOD = 'quagga'
     API_CONT = 'ospfsettings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = ['action', 'id', 'prefix_list', 'set']
     FIELDS_ALL = [FIELD_ID, 'enabled']
     FIELDS_ALL.extend(FIELDS_CHANGE)
@@ -36,8 +40,8 @@ class RouteMap(BaseModule):
         'existing_prefixes': 'ospf.prefixlists.prefixlist',
     }
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.route_map = {}
         self.existing_prefixes = None
 
@@ -47,8 +51,6 @@ class RouteMap(BaseModule):
                 self.m.fail_json(
                     'To create a OSPF route-map you need to provide an ID and action!'
                 )
-
-            validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
 
         self._base_check()
 

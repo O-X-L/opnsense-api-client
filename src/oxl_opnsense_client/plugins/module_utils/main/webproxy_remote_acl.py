@@ -1,6 +1,11 @@
-from ..base.cls import BaseModule
-from ..helper.main import is_unset
-from ..helper.validate import is_valid_url
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_valid_url
 
 
 class Acl(BaseModule):
@@ -16,7 +21,6 @@ class Acl(BaseModule):
     API_MOD = 'proxy'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'url', 'username', 'password', 'categories', 'verify_ssl',
         'description',
@@ -38,8 +42,8 @@ class Acl(BaseModule):
     }
     EXIST_ATTR = 'acl'
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.acl = {}
 
     def check(self) -> None:

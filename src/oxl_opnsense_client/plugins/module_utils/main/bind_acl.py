@@ -1,5 +1,10 @@
-from ..helper.main import validate_str_fields, is_ip_or_network, is_unset
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_ip_or_network, is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Acl(BaseModule):
@@ -15,7 +20,6 @@ class Acl(BaseModule):
     API_MOD = 'bind'
     API_CONT = 'acl'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = ['networks']
     FIELDS_ALL = ['enabled', FIELD_ID]
     FIELDS_ALL.extend(FIELDS_CHANGE)
@@ -28,23 +32,18 @@ class Acl(BaseModule):
     }
     EXIST_ATTR = 'acl'
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.acl = {}
 
     def check(self) -> None:
-        validate_str_fields(
-            m=self.m, data=self.p,
-            field_regex=self.STR_VALIDATIONS,
-        )
-
         if self.p['state'] == 'present':
             if is_unset(self.p['networks']):
-                self.m.fail('You need to provide at networks to create an ACL!')
+                self.m.fail_json('You need to provide at networks to create an ACL!')
 
             for net in self.p['networks']:
                 if not is_ip_or_network(net):
-                    self.m.fail(
+                    self.m.fail_json(
                         f"It seems you provided an invalid network: '{net}'"
                     )
 

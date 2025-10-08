@@ -1,5 +1,9 @@
-from ..base.cls import BaseModule
-from ..helper.main import is_unset
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import is_unset
 
 
 class Rule(BaseModule):
@@ -14,7 +18,6 @@ class Rule(BaseModule):
     API_MOD = 'proxy'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = ['matches', 'proxies', 'join_type', 'match_type']
     FIELDS_ALL = [FIELD_ID]
     FIELDS_ALL.extend(FIELDS_CHANGE)
@@ -28,8 +31,8 @@ class Rule(BaseModule):
         'existing_proxies': 'proxy.pac.proxy',
     }
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.rule = {}
         self.existing_matches = {}
         self.existing_proxies = {}
@@ -53,4 +56,4 @@ class Rule(BaseModule):
                 existing=self.existing_proxies,
             )
 
-            self.r['diff']['after'] = self.b.build_diff(data=self.p)
+        self._base_check()

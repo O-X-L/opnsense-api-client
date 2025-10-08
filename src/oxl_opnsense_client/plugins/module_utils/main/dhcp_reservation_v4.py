@@ -1,21 +1,25 @@
-from ..helper.main import is_ip, is_network, is_unset
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_ip, is_network, is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class ReservationV4(BaseModule):
     FIELD_ID = 'ip'
     CMDS = {
-        'add': 'addReservation',
-        'del': 'delReservation',
-        'set': 'setReservation',
-        'search': 'searchReservation',
-        'detail': 'getReservation',
+        'add': 'add_reservation',
+        'del': 'del_reservation',
+        'set': 'set_reservation',
+        'search': 'search_reservation',
+        'detail': 'get_reservation',
     }
     API_KEY_PATH = 'reservation'
     API_MOD = 'kea'
     API_CONT = 'dhcpv4'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'mac', 'hostname', 'description', 'subnet'
     ]
@@ -28,11 +32,10 @@ class ReservationV4(BaseModule):
         'ip': 'ip_address',
         'mac': 'hw_address',
     }
-    FIELDS_IGNORE = ['subnet']  # empty field ?!
     EXIST_ATTR = 'reservation'
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.reservation = {}
         self.existing_reservations = None
         self.existing_subnets = None

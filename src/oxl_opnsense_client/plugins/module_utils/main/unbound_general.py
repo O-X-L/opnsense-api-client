@@ -1,6 +1,12 @@
-from ..helper.main import validate_port, is_unset, is_ip6_network
-from ..helper.unbound import validate_domain
-from ..base.cls import GeneralModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_unset, is_ip6_network
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.unbound import \
+    validate_domain
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import GeneralModule
 
 
 # Supported as of OPNsense 23.7
@@ -55,18 +61,20 @@ class General(GeneralModule):
         'existing_active_interfaces': 'unbound.general.active_interface',
         'existing_outgoing_interfaces': 'unbound.general.outgoing_interface',
     }
+    INT_VALIDATIONS = {
+        'port': {'min': 1, 'max': 65535},
+    }
 
-    def __init__(self, m, result: dict):
-        GeneralModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None):
+        GeneralModule.__init__(self=self, m=module, r=result, s=session)
         self.existing_active_interfaces = []
         self.existing_outgoing_interfaces = []
 
     def check(self) -> None:
-        # pylint: disable=W0201
-        validate_port(m=self.m, port=self.p['port'])
+        self._check_validators()
 
         if not is_unset(self.p['dhcp_domain']):
-            validate_domain(m=self.m, domain=self.p['dhcp_domain'])
+            validate_domain(module=self.m, domain=self.p['dhcp_domain'])
 
         if not is_ip6_network(self.p['dns64_prefix']):
             self.m.fail_json(f"Value '{self.p['dns64_prefix']}' is an invalid IPv6 network!")

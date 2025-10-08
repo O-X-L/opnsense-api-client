@@ -1,21 +1,26 @@
-from ..helper.main import validate_port, is_ip
-from ..helper.unbound import validate_domain
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    validate_port, is_ip
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.unbound import \
+    validate_domain
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Domain(BaseModule):
     CMDS = {
-        'add': 'addDomainOverride',
-        'del': 'delDomainOverride',
-        'set': 'setDomainOverride',
+        'add': 'add_domain_override',
+        'del': 'del_domain_override',
+        'set': 'set_domain_override',
         'search': 'get',
-        'toggle': 'toggleDomainOverride',
+        'toggle': 'toggle_domain_override',
     }
     API_KEY_PATH = 'unbound.domains.domain'
     API_MOD = 'unbound'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = ['domain', 'server', 'description']
     FIELDS_ALL = ['enabled']
     FIELDS_ALL.extend(FIELDS_CHANGE)
@@ -24,13 +29,13 @@ class Domain(BaseModule):
     }
     EXIST_ATTR = 'domain'
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.domain = {}
 
     def check(self) -> None:
         if self.p['state'] == 'present':
-            validate_domain(m=self.m, domain=self.p['domain'])
+            validate_domain(module=self.m, domain=self.p['domain'])
             self._validate_server()
 
         self._base_check()
@@ -40,7 +45,7 @@ class Domain(BaseModule):
 
         if server.find('@') != -1:
             server, port = self.p['server'].split('@', 1)
-            validate_port(m=self.m, port=port)
+            validate_port(module=self.m, port=port)
 
         if not is_ip(server):
             self.m.fail_json(f"Value '{server}' is not a valid IP-address!")

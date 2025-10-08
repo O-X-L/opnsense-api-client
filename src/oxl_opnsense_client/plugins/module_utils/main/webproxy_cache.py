@@ -1,4 +1,8 @@
-from ..base.cls import GeneralModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import GeneralModule
 
 
 class Cache(GeneralModule):
@@ -11,11 +15,9 @@ class Cache(GeneralModule):
     API_MOD = 'proxy'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
-        'memory_mb', 'size_mb', 'directory', 'layer_1', 'layer_2',
-        'size_mb_max', 'memory_kb_max', 'memory_cache_mode',
-        'cache_linux_packages', 'cache_windows_updates',
+        'memory_mb', 'size_mb', 'directory', 'size_mb_max', 'memory_kb_max', 'memory_cache_mode',
+        'cache_linux_packages', 'cache_windows_updates', 'swap_timeout', 'max_swap_rate', 'slot_size',
     ]
     FIELDS_ALL = FIELDS_CHANGE
     FIELDS_TRANSLATE = {
@@ -23,15 +25,13 @@ class Cache(GeneralModule):
         'size_mb': 'size',
         'size_mb_max': 'maximum_object_size',
         'memory_kb_max': 'maximum_object_size_in_memory',
-        'layer_1': 'l1',
-        'layer_2': 'l2',
     }
     FIELDS_TYPING = {
         'bool': ['cache_linux_packages', 'cache_windows_updates'],
         'select': ['memory_cache_mode'],
         'int': [
-            'memory_mb', 'size_mb', 'layer_1', 'layer_2', 'size_mb_max',
-            'memory_kb_max'
+            'memory_mb', 'size_mb', 'size_mb_max', 'memory_kb_max', 'swap_timeout', 'max_swap_rate',
+            'slot_size',
         ],
     }
     INT_VALIDATIONS = {
@@ -39,5 +39,5 @@ class Cache(GeneralModule):
         'memory_kb_max': {'min': 1, 'max': 99999},
     }
 
-    def __init__(self, m, result: dict):
-        GeneralModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None):
+        GeneralModule.__init__(self=self, m=module, r=result, s=session)

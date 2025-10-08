@@ -1,22 +1,29 @@
-from ..helper.main import is_ip4, is_ip6, valid_hostname, to_digit, simplify_translate, is_unset
-from ..helper.unbound import validate_domain
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import \
+    to_digit, simplify_translate
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_ip4, is_ip6, valid_hostname, is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.unbound import \
+    validate_domain
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Host(BaseModule):
     CMDS = {
-        'add': 'addHostOverride',
-        'del': 'delHostOverride',
-        'set': 'setHostOverride',
+        'add': 'add_host_override',
+        'del': 'del_host_override',
+        'set': 'set_host_override',
         'search': 'get',
-        'toggle': 'toggleHostOverride',
+        'toggle': 'toggle_host_override',
     }
     API_KEY = 'host'
     API_KEY_PATH = f'unbound.hosts.{API_KEY}'
     API_MOD = 'unbound'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'hostname', 'domain', 'record_type', 'prio', 'value',
         'description',
@@ -34,31 +41,31 @@ class Host(BaseModule):
         # 'value': 'mx',  # mx or server
     }
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.host = {}
 
     def check(self) -> None:
         if self.p['state'] == 'present':
             if is_unset(self.p['value']):
-                self.m.fail(
+                self.m.fail_json(
                     "You need to provide a 'value' to create a host-override!"
                 )
 
-            validate_domain(m=self.m, domain=self.p['domain'])
+            validate_domain(module=self.m, domain=self.p['domain'])
 
         if self.p['record_type'] == 'MX':
             if not valid_hostname(self.p['value']):
-                self.m.fail(f"Value '{self.p['value']}' is not a valid hostname!")
+                self.m.fail_json(f"Value '{self.p['value']}' is not a valid hostname!")
 
         else:
             self.p['prio'] = None
 
             if self.p['state'] == 'present':
                 if self.p['record_type'] == 'A' and not is_ip4(self.p['value']):
-                    self.m.fail(f"Value '{self.p['value']}' is not a valid IPv4-address!")
+                    self.m.fail_json(f"Value '{self.p['value']}' is not a valid IPv4-address!")
                 elif self.p['record_type'] == 'AAAA' and not is_ip6(self.p['value']):
-                    self.m.fail(f"Value '{self.p['value']}' is not a valid IPv6-address!")
+                    self.m.fail_json(f"Value '{self.p['value']}' is not a valid IPv6-address!")
 
         self._base_check()
 

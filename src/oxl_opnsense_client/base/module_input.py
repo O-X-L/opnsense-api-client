@@ -1,5 +1,6 @@
 from pathlib import Path
-from .module_utils.base.handler import exit_cnf
+
+from base.handler import exit_cnf
 
 TYPE_MAPPING = {
     'str': str,

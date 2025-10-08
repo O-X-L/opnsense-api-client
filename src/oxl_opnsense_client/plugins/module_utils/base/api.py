@@ -1,10 +1,14 @@
+from os import environ
 from socket import setdefaulttimeout
 
 import httpx
 
-from ..helper.api import \
-    check_host, ssl_verification, check_response, get_params_path, debug_api, api_pretty_exception
-from ..helper.main import is_ip6
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.api import \
+    check_host, ssl_verification, check_response, get_params_path, debug_api, \
+    check_or_load_credentials, api_pretty_exception
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import is_ip6
 
 DEFAULT_TIMEOUT = 20.0
 HTTPX_EXCEPTIONS = (
@@ -14,14 +18,16 @@ HTTPX_EXCEPTIONS = (
 
 
 class Session:
-    def __init__(self, m, token: str, secret: str, timeout: float = DEFAULT_TIMEOUT):
-        self.m = m
-        self.timeout = timeout
-        self.url = ''
-        self.s = self._start(timeout, token=token, secret=secret)
+    def __init__(self, module: AnsibleModule, timeout: float = DEFAULT_TIMEOUT):
+        self.m = module
+        self.s = self._start(timeout)
 
-    def _start(self, timeout: float, token: str, secret: str) -> httpx.Client:
-        check_host(m=self.m)
+    def _start(self, timeout: float) -> httpx.Client:
+        check_host(module=self.m)
+        api_key, api_secret = check_or_load_credentials(module=self.m)
+        if api_secret is None:
+            api_key = self.m.params['api_key']
+            api_secret = self.m.params['api_secret']
 
         if 'api_timeout' in self.m.params and self.m.params['api_timeout'] is not None:
             timeout = self.m.params['api_timeout']
@@ -32,33 +38,37 @@ class Session:
         if is_ip6(fw, strip_enclosure=False):
             fw = f"[{fw}]"
 
-        self.url = f"https://{fw}:{self.m.params['port']}"
+        proxy = environ.get('HTTPS_PROXY', None)
+        if proxy is not None and not proxy.startswith('http') and not proxy.startswith('sock'):
+            proxy = None
 
         return httpx.Client(
-            base_url=f"{self.url}/api",
-            auth=(token, secret),
+            base_url=f"https://{fw}:{self.m.params['api_port']}/api",
+            auth=(api_key, api_secret),
             timeout=httpx.Timeout(timeout=timeout, connect=2.0),
             transport=httpx.HTTPTransport(
-                verify=ssl_verification(m=self.m),
+                verify=ssl_verification(module=self.m),
                 retries=self.m.params['api_retries'],
+                proxy=proxy,
             ),
+            headers={'User-Agent': 'Ansible'}
         )
 
-    def get(self, cnf: dict, timeout: float = DEFAULT_TIMEOUT) -> dict:
+    def get(self, cnf: dict) -> dict:
         params_path = get_params_path(cnf=cnf)
         call_url = f"{cnf['module']}/{cnf['controller']}/{cnf['command']}{params_path}"
 
         debug_api(
-            m=self.m,
+            module=self.m,
             method='GET',
             url=f'{self.s.base_url}{call_url}',
         )
 
         try:
             response = check_response(
-                m=self.m,
+                module=self.m,
                 cnf=cnf,
-                response=self.s.get(url=call_url, timeout=timeout)
+                response=self.s.get(url=call_url)
             )
 
         except HTTPX_EXCEPTIONS as error:
@@ -70,7 +80,7 @@ class Session:
 
         return response
 
-    def post(self, cnf: dict, headers: dict = None, timeout: float = DEFAULT_TIMEOUT) -> dict:
+    def post(self, cnf: dict, headers: dict = None) -> dict:
         if headers is None:
             headers = {}
 
@@ -84,7 +94,7 @@ class Session:
         call_url = f"{cnf['module']}/{cnf['controller']}/{cnf['command']}{params_path}"
 
         debug_api(
-            m=self.m,
+            module=self.m,
             method='POST',
             url=f'{self.s.base_url}{call_url}',
             data=data,
@@ -93,10 +103,10 @@ class Session:
 
         try:
             response = check_response(
-                m=self.m,
+                module=self.m,
                 cnf=cnf,
                 response=self.s.post(
-                    url=call_url, json=data, headers=headers, timeout=timeout,
+                    url=call_url, json=data, headers=headers
                 )
             )
 
@@ -117,3 +127,17 @@ class Session:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+
+
+def single_get(module: AnsibleModule, cnf: dict, timeout: float = DEFAULT_TIMEOUT) -> dict:
+    with Session(module=module, timeout=timeout) as s:
+        response = s.get(cnf=cnf)
+
+    return response
+
+
+def single_post(module: AnsibleModule, cnf: dict, timeout: float = DEFAULT_TIMEOUT, headers: dict = None) -> dict:
+    with Session(module=module, timeout=timeout) as s:
+        response = s.post(cnf=cnf, headers=headers)
+
+    return response

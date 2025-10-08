@@ -1,5 +1,10 @@
-from ..helper.main import validate_int_fields, validate_str_fields, is_unset
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Prefix(BaseModule):
@@ -14,7 +19,6 @@ class Prefix(BaseModule):
     API_MOD = 'quagga'
     API_CONT = 'bgp'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = ['network', 'description', 'version', 'action']
     FIELDS_MATCH = ['seq', 'name']
     FIELDS_ALL = ['enabled']
@@ -35,8 +39,8 @@ class Prefix(BaseModule):
     }
     EXIST_ATTR = 'prefix_list'
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.prefix_list = {}
         self.existing_prefixes = None
         self.existing_maps = None
@@ -48,12 +52,6 @@ class Prefix(BaseModule):
                     'To create a BGP prefix-list you need to provide a network, '
                     'sequence-number and action!'
                 )
-
-            validate_str_fields(
-                m=self.m, data=self.p,
-                field_regex=self.STR_VALIDATIONS,
-            )
-            validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
 
         self._base_check(match_fields=self.FIELDS_MATCH)
 

@@ -1,21 +1,25 @@
-from ..helper.main import validate_int_fields, validate_port
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    validate_port_or_range
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Rule(BaseModule):
     FIELD_ID = 'description'
     CMDS = {
-        'add': 'addrule',
-        'del': 'delrule',
-        'set': 'setrule',
+        'add': 'add_rule',
+        'del': 'del_rule',
+        'set': 'set_rule',
         'search': 'get',
-        'toggle': 'togglerule',
+        'toggle': 'toggle_rule',
     }
     API_KEY_PATH = 'ts.rules.rule'
     API_MOD = 'trafficshaper'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'target', 'interface', 'interface2', 'protocol', 'max_packet_length',
         'source_invert', 'source_net', 'source_port', 'destination_invert',
@@ -51,21 +55,20 @@ class Rule(BaseModule):
         'existing_queues': 'ts.queues.queue',
     }
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.rule = {}
         self.existing_queues = None
         self.existing_pipes = None
 
     def check(self) -> None:
-        validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
-        validate_port(m=self.m, port=self.p['source_port'])
-        validate_port(m=self.m, port=self.p['destination_port'])
+        validate_port_or_range(module=self.m, port=self.p['source_port'])
+        validate_port_or_range(module=self.m, port=self.p['destination_port'])
 
         if self.p['state'] == 'present':
             if self.p['target_pipe'] in [None, ''] and \
                     self.p['target_queue'] in [None, '']:
-                self.m.fail(
+                self.m.fail_json(
                     "You need to provide a 'target_pipe' or 'target_queue' to "
                     "create a shaper rule!"
                 )
@@ -90,7 +93,7 @@ class Rule(BaseModule):
                     fail=True,
                 )
 
-            self.r['diff']['after'] = self.b.build_diff(data=self.p)
+        self._base_check()
 
     def get_existing(self) -> list:
         existing = []

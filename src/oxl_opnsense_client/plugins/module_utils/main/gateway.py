@@ -1,22 +1,28 @@
 from ipaddress import ip_address
 
-from ..helper.main import validate_int_fields, is_ip6
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_ip6
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Gw(BaseModule):
     FIELD_ID = 'name'
     CMDS = {
-        'add': 'addGateway',
-        'del': 'delGateway',
-        'set': 'setGateway',
-        'search': 'get',
-        'toggle': 'toggleGateway',
+        'add': 'add_gateway',
+        'del': 'del_gateway',
+        'set': 'set_gateway',
+        'search': 'search_gateway',
+        'detail': 'get_gateway',
+        'toggle': 'toggle_gateway',
     }
-    API_KEY_PATH = 'gateways.gateway_item'
+    API_KEY_PATH = 'gateway_item'
     API_MOD = 'routing'
     API_CONT = 'settings'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'name', 'interface', 'gateway', 'default_gw', 'far_gw', 'monitor_disable', 'monitor_noroute', 'monitor',
         'force_down', 'priority', 'weight', 'latency_low', 'latency_high', 'loss_low', 'loss_high', 'interval',
@@ -57,37 +63,37 @@ class Gw(BaseModule):
     }
     EXIST_ATTR = 'gw'
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.gw = {}
 
     def check(self) -> None:
         if self.p['state'] == 'present':
-            validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
+            if not is_unset(self.p['gateway']):
+                try:
+                    ip_address(self.p['gateway'])
 
-            try:
-                ip_address(self.p['gateway'])
-
-            except ValueError:
-                self.m.fail(f"Value '{self.p['gateway']}' is not a valid gateway!")
+                except ValueError:
+                    self.m.fail_json(f"Value '{self.p['gateway']}' is not a valid gateway!")
 
             if self.p['monitor']:
                 try:
                     ip_address(self.p['monitor'])
 
                 except ValueError:
-                    self.m.fail(f"Value '{self.p['monitor']}' is not a valid monitor address!")
+                    self.m.fail_json(f"Value '{self.p['monitor']}' is not a valid monitor address!")
 
             if not self.p['interface']:
-                self.m.fail('You need to provide a value for the interface!')
+                self.m.fail_json('You need to provide a value for the interface!')
 
             if not self.p['gateway']:
-                self.m.fail('You need to provide a value for the gateway!')
+                self.m.fail_json('You need to provide a value for the gateway!')
 
-            if is_ip6(self.p['gateway']):
-                self.p['ip_protocol'] = 'inet6'
+            if is_unset(self.p['ip_protocol']):
+                if is_ip6(self.p['gateway']):
+                    self.p['ip_protocol'] = 'inet6'
 
-            else:
-                self.p['ip_protocol'] = 'inet'
+                else:
+                    self.p['ip_protocol'] = 'inet'
 
         self._base_check()

@@ -1,10 +1,8 @@
-
-from .main import get_matching
-from ..defaults.rule import RULE_DEFAULTS
+from ansible.module_utils.basic import AnsibleModule
 
 
-def validate_values(error_func, m, cnf: dict) -> None:
-    error = "Value '%s' is invalid for the field '%s'!"
+def validate_values(error_func, module: AnsibleModule, cnf: dict, kind: str = 'filter') -> None:
+    # error = "Value '%s' is invalid for the field '%s'!"
 
     # can't validate as aliases are supported
     # for field in ['source_net', 'destination_net']:
@@ -19,40 +17,28 @@ def validate_values(error_func, m, cnf: dict) -> None:
     #             except ValueError:
     #                 error_func(error % (cnf[field], field))
 
-    if cnf['protocol'] in ['TCP/UDP']:
-        error_func(error % (cnf['protocol'], 'protocol'))
+    if kind == 'filter':
+        required_together=[
+            ('max_src_conn_rate', 'max_src_conn_rates', 'overload'),
+            ('adaptive_start', 'adaptive_end'),
+            ('tcp_flags', 'tcp_flags_clear'),
+        ]
+        for opts in required_together:
+            if any((cnf[opts[0]] is None) != (cnf[o] is None) for o in opts[1:]):
+                error_func(f"parameters are required together: {', '.join(opts)}")
+            if any((cnf[opts[0]] == []) != (cnf[o] == []) for o in opts[1:]):
+                error_func(f"parameters are required together: {', '.join(opts)}")
 
     # some recommendations - maybe the user overlooked something
-    if 'action' in cnf and cnf['action'] == 'pass' and cnf['protocol'] in ['TCP', 'UDP']:
+    if 'action' in cnf and cnf['action'] == 'pass' and cnf['protocol'] in ['TCP', 'UDP', 'TCP/UDP']:
         if cnf['source_net'] == 'any' and cnf['destination_net'] == 'any':
-            m.warn(
+            module.warn(
                 "Configuring allow-rules with 'any' source and "
                 "'any' destination is bad practice!"
             )
 
         elif cnf['destination_net'] == 'any' and cnf['destination_port'] == 'any':
-            m.warn(
+            module.warn(
                 "Configuring allow-rules to 'any' destination "
                 "using 'all' ports is bad practice!"
             )
-
-
-def check_purge_configured(m, existing_rule: dict) -> bool:
-    configured_rules = []
-
-    for rule_key, rule_config in m.params['rules'].items():
-        if rule_config is None:
-            rule_config = {}
-
-        rule_config = {
-            **RULE_DEFAULTS,
-            **rule_config,
-        }
-
-        rule_config[m.params['key_field']] = rule_key
-        configured_rules.append(rule_config)
-
-    return get_matching(
-        m=m, existing_items=configured_rules,
-        compare_item=existing_rule, match_fields=m.params['match_fields'],
-    ) is None

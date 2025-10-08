@@ -4,11 +4,15 @@
 # pylint: disable=W0212,R0912,R0915
 
 from typing import Callable
+from functools import reduce
 
-from ..helper.main import \
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    single_get, single_post
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import \
     get_simple_existing, to_digit, get_matching, simplify_translate, is_unset, \
     sort_param_lists
-from .handler import exit_bug, ModuleSoftError
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+    exit_bug, ModuleSoftError
 
 
 class Base:
@@ -30,6 +34,7 @@ class Base:
     ATTR_FIELD_ALL = 'FIELDS_ALL'
     ATTR_FIELD_CH = 'FIELDS_CHANGE'
     ATTR_REL_CONT = 'API_CONT_REL'
+    ATTR_REL_CMD = 'API_CMD_REL'
     ATTR_GET_CONT = 'API_CONT_GET'
     ATTR_GET_MOD = 'API_MOD_GET'
     ATTR_API_MOD = 'API_MOD'
@@ -38,6 +43,7 @@ class Base:
     ATTR_TYPING = 'FIELDS_TYPING'
     ATTR_FIELD_ID = 'FIELD_ID'  # field we use for matching
     ATTR_FIELD_PK = 'FIELD_PK'  # field opnsense uses as primary key
+    ATTR_CMDS = 'CMDS'
     PARAM_MATCH_FIELDS = 'match_fields'
     QUERY_MAX_ENTRIES = 1000
     VALUE_NO_LOG = 'VALUE_SPECIFIED_IN_NO_LOG_PARAMETER'
@@ -49,6 +55,7 @@ class Base:
         ATTR_API_CONT,
         ATTR_FIELD_ALL,
         ATTR_FIELD_CH,
+        ATTR_CMDS,
     ]
 
     def __init__(self, instance):
@@ -59,6 +66,15 @@ class Base:
         for attr in self.REQUIRED_ATTRS:
             if not hasattr(self.i, attr):
                 exit_bug(f"Module has no '{attr}' attribute set!")
+
+    def api_search_post(self, cnf: dict, data: dict = None) -> list:
+        if data is None:
+            data = {}
+
+        return self._api_post({
+            **cnf,
+            'data': {'current': 1, 'rowCount': self.QUERY_MAX_ENTRIES, **data},
+        })['rows']
 
     def search(self, match_fields: list = None) -> (dict, list):
         # workaround if 'get' needs to be performed using other api module/controller
@@ -74,7 +90,7 @@ class Base:
         self.i.call_cnf['module'] = mod_get
 
         if self.i.CMDS['search'].startswith('search'):
-            # case for api-refactoring: https://github.com/ansibleguy/collection_opnsense/issues/51
+            # because of new OPNsense API: https://github.com/O-X-L/ansible-opnsense/issues/51
             if 'detail' not in self.i.CMDS:
                 exit_bug("To use the 'search' commands you need to also define the related 'detail' (get) command!")
 
@@ -82,14 +98,12 @@ class Base:
             # if we can - we only perform the 'detail' call for the already matched entry to save on needed requests
             base_match_fields = False
             base_match_fields_checked = False
-            force_details = False if not hasattr(self.i, self.ATTR_GET_DETAIL_ALL) else \
-                getattr(self.i, self.ATTR_GET_DETAIL_ALL)
+            force_details = getattr(self.i, self.ATTR_GET_DETAIL_ALL, False)
 
-            for base_entry in self._api_post({
+            for base_entry in self.api_search_post({
                 **self.i.call_cnf,
                 'command': self.i.CMDS['search'],
-                'data': {'current': 1, 'rowCount': self.QUERY_MAX_ENTRIES},
-            })['rows']:
+            }):
                 if not force_details and match_fields is not None and not base_match_fields_checked:
                     base_match_fields_checked = True
                     base_match_fields = all(field in base_entry for field in match_fields)
@@ -105,13 +119,13 @@ class Base:
                             'params': [base_entry[self.field_pk]]
                         })
                     )
+                    if self.raw is None:
+                        self.raw = detail_entry
 
                 data.append({
-                    **detail_entry,
                     **base_entry,
+                    **detail_entry,
                 })
-                if self.raw is None:
-                    self.raw = data[0]
 
             if self.raw is None:
                 self.raw = self._search_path_handling(
@@ -158,7 +172,12 @@ class Base:
         except KeyError:
             exit_bug(f"Got invalid API_KEY_PATH: '{ak_path}' not matching data '{data}'")
 
-    def get_existing(self, diff_filter: bool = False) -> list:
+    def get_existing(self, diff_filter: bool = False, details_all: bool = True) -> list:
+        if details_all:
+            # because of new OPNsense API: https://github.com/O-X-L/ansible-opnsense/issues/51
+            # we require all details even if that means we have to perform hundreds of api-calls.. :(
+            setattr(self.i, self.ATTR_GET_DETAIL_ALL, True)
+
         if diff_filter:
             # use already existing filtering to get 'clean' int/.. values
             return get_simple_existing(
@@ -177,7 +196,7 @@ class Base:
             self.i.existing_entries = self._call_search(match_fields)
 
         match = get_matching(
-            m=self.i.m, existing_items=self.i.existing_entries,
+            module=self.i.m, existing_items=self.i.existing_entries,
             compare_item=self.i.p, match_fields=match_fields,
             simplify_func=self._call_simple(),
         )
@@ -191,6 +210,9 @@ class Base:
                 self.i.call_cnf['params'] = [match[self.field_pk]]
 
     def process(self) -> None:
+        self.i.call_cnf['controller'] = self.i.API_CONT
+        self.i.call_cnf['module'] = self.i.API_MOD
+
         if 'state' in self.i.p and self.i.p['state'] == 'absent':
             if self.i.exists:
                 if hasattr(self.i, 'delete'):
@@ -248,7 +270,7 @@ class Base:
                         self.i.r['changed'] = True
 
                         if self.i.p['debug']:
-                            self.i.m.info(
+                            self.i.m.warn(
                                 f"Field changed: '{field}' "
                                 f"'{self.e[field]}' != '{self.i.p[field]}'"
                             )
@@ -263,7 +285,7 @@ class Base:
         # update if changed
         if self.i.r['changed']:
             if self.i.p['debug']:
-                self.i.m.info(f"{self.i.r['diff']}")
+                self.i.m.warn(f"{self.i.r['diff']}")
 
             if not self.i.m.check_mode:
                 if hasattr(self.i, '_update_call'):
@@ -277,7 +299,7 @@ class Base:
                     })
 
                 if self.i.p['debug']:
-                    self.i.m.info(f"{self.i.r['diff']}")
+                    self.i.m.warn(f"{self.i.r['diff']}")
 
                 return response
 
@@ -329,22 +351,26 @@ class Base:
                 })
 
             if self.i.p['debug']:
-                self.i.m.info(f"{self.i.r['diff']}")
+                self.i.m.warn(f"{self.i.r['diff']}")
 
             return response
 
     def reload(self) -> dict:
         # reload the running config
         cont_rel = self.i.API_CONT
+        cmd_rel = 'reconfigure'
 
         if hasattr(self.i, self.ATTR_REL_CONT):
             cont_rel = getattr(self.i, self.ATTR_REL_CONT)
+
+        if hasattr(self.i, self.ATTR_REL_CMD):
+            cmd_rel = getattr(self.i, self.ATTR_REL_CMD)
 
         if not self.i.m.check_mode:
             return self._api_post({
                 'module': self.i.API_MOD,
                 'controller': cont_rel,
-                'command': self.i.API_CMD_REL,
+                'command': cmd_rel,
                 'params': []
             })
 
@@ -361,7 +387,7 @@ class Base:
             'params': [getattr(self.i, self.i.EXIST_ATTR)[self.field_pk]],
         })
 
-    def _is_enabled(self, invert: bool) -> bool:
+    def is_enabled(self, invert: bool = False) -> bool:
         is_enabled = getattr(self.i, self.i.EXIST_ATTR)['enabled']
 
         if invert:
@@ -370,7 +396,7 @@ class Base:
         return is_enabled
 
     def enable(self, invert: bool = False) -> dict:
-        if self.i.exists and not self._is_enabled(invert=invert):
+        if self.i.exists and not self.is_enabled(invert=invert):
             self.i.r['changed'] = True
             if not invert:
                 self.i.r['diff']['before'] = {'enabled': False}
@@ -384,7 +410,7 @@ class Base:
                 return self._change_enabled_state()
 
     def disable(self, invert: bool = False) -> dict:
-        if self.i.exists and self._is_enabled(invert=invert):
+        if self.i.exists and self.is_enabled(invert=invert):
             self.i.r['changed'] = True
             if not invert:
                 self.i.r['diff']['before'] = {'enabled': True}
@@ -537,6 +563,10 @@ class Base:
             else:
                 request[opn_field] = opn_data
 
+            if isinstance(opn_field, tuple):
+                hreqest = reduce(lambda r, i: r.setdefault(i, {}), opn_field[:-1], request)
+                hreqest[opn_field[-1]] = request.pop(opn_field)
+
         payload = request
 
         if hasattr(self.i, self.ATTR_AK_PATH_REQ):
@@ -578,7 +608,10 @@ class Base:
 
             if not found:
                 if fail:
-                    self.i.m.fail(
+                    if self.i.p['debug']:
+                        self.i.m.warn(f"Unable to find link by field '{field}': '{self.i.p[field]}' in '{existing}'")
+
+                    self.i.m.fail_json(
                         f"Provided {field} '{self.i.p[field]}' was not found!"
                     )
 
@@ -613,7 +646,7 @@ class Base:
             msg = f"At least one of the provided {field} entries was not found!"
 
             if fail:
-                self.i.m.fail(msg)
+                self.i.m.fail_json(msg)
 
             if fail_soft:
                 raise ModuleSoftError(msg)
@@ -686,9 +719,6 @@ class Base:
         if hasattr(self.i, '_search_call'):
             return self.i._search_call()
 
-        if hasattr(self.i, 'search_call'):
-            return self.i.search_call()
-
         return self.search(match_fields)
 
     def _api_headers(self) -> dict:
@@ -698,10 +728,23 @@ class Base:
         return {}
 
     def _api_post(self, cnf: dict) -> (dict, list):
-        return self.i.s.post(
+        if hasattr(self.i, 's'):
+            return self.i.s.post(
+                cnf=cnf,
+                headers=self._api_headers()
+            )
+
+        return single_post(
             cnf=cnf,
+            module=self.i.m,
             headers=self._api_headers()
         )
 
     def _api_get(self, cnf: dict) -> (dict, list):
-        return self.i.s.get(cnf=cnf)
+        if hasattr(self.i, 's'):
+            return self.i.s.get(cnf=cnf)
+
+        return single_get(
+            cnf=cnf,
+            module=self.i.m
+        )

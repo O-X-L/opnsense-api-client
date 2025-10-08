@@ -1,21 +1,23 @@
-from ..helper.main import validate_int_fields
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Queue(BaseModule):
     FIELD_ID = 'description'
     CMDS = {
-        'add': 'addQueue',
-        'del': 'delQueue',
-        'set': 'setQueue',
+        'add': 'add_queue',
+        'del': 'del_queue',
+        'set': 'set_queue',
         'search': 'get',
-        'toggle': 'toggleQueue',
+        'toggle': 'toggle_queue',
     }
     API_KEY_PATH = 'ts.queues.queue'
     API_MOD = 'trafficshaper'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'codel_enable', 'codel_ecn_enable', 'pie_enable',  'mask',
         'pipe', 'buckets', 'codel_target', 'codel_interval', 'weight',
@@ -38,24 +40,21 @@ class Queue(BaseModule):
         'existing_pipes': 'ts.pipes.pipe',
     }
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.queue = {}
         self.existing_pipes = None
 
     def check(self) -> None:
-        if self.p['state'] == 'present':
-            validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
-
         self.b.find(match_fields=[self.FIELD_ID])
 
         if self.p['state'] == 'present':
             if self.p['pipe'] in [None, '']:
-                self.m.fail("You need to provide a 'pipe' to create a shaper queue!")
+                self.m.fail_json("You need to provide a 'pipe' to create a shaper queue!")
 
             if self.p['weight'] in [None, '']:
                 if not self.exists:
-                    self.m.fail("You need to provide 'weight' to create a shaper queue!")
+                    self.m.fail_json("You need to provide 'weight' to create a shaper queue!")
 
                 else:
                     self.p['weight'] = self.queue['weight']
@@ -66,7 +65,8 @@ class Queue(BaseModule):
                 existing=self.existing_pipes,
                 existing_field_id='description',
             )
-            self.r['diff']['after'] = self.b.build_diff(data=self.p)
+
+        self._base_check()
 
     def get_existing(self) -> list:
         existing = []

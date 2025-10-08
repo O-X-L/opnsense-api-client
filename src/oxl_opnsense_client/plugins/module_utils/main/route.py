@@ -1,7 +1,12 @@
 from ipaddress import ip_network
 
-from ..helper.main import simplify_translate
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import \
+    simplify_translate
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Route(BaseModule):
@@ -16,7 +21,6 @@ class Route(BaseModule):
     API_KEY_PATH = 'route.route'
     API_MOD = 'routes'
     API_CONT = 'routes'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = ['network', 'gateway', 'description']
     FIELDS_ALL = ['enabled']
     FIELDS_ALL.extend(FIELDS_CHANGE)
@@ -31,8 +35,8 @@ class Route(BaseModule):
     }
     EXIST_ATTR = 'route'
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.route = {}
 
     def check(self) -> None:
@@ -40,17 +44,18 @@ class Route(BaseModule):
             ip_network(self.p['network'])
 
         except ValueError:
-            self.m.fail(f"Value '{self.p['network']}' is not a valid network!")
+            self.m.fail_json(f"Value '{self.p['network']}' is not a valid network!")
 
         self._base_check()
 
     def _simplify_existing(self, route: dict) -> dict:
-        # makes processing easier
         simple = simplify_translate(
             existing=route,
             typing=self.FIELDS_TYPING,
             translate=self.FIELDS_TRANSLATE,
             bool_invert=self.FIELDS_BOOL_INVERT,
         )
-        simple['gateway'] = simple['gateway'].rsplit('-', 1)[0].strip()
+        if simple['gateway'].find(' - ') != -1:
+            simple['gateway'] = simple['gateway'].rsplit('-', 1)[0].strip()
+
         return simple

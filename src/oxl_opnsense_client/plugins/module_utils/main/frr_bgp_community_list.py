@@ -1,5 +1,10 @@
-from ..helper.main import validate_int_fields, is_unset
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Community(BaseModule):
@@ -15,7 +20,6 @@ class Community(BaseModule):
     API_MOD = 'quagga'
     API_CONT = 'bgp'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = ['number', 'seq', 'action', 'community']
     FIELDS_ALL = [FIELD_ID, 'enabled']
     FIELDS_ALL.extend(FIELDS_CHANGE)
@@ -32,8 +36,8 @@ class Community(BaseModule):
     }
     EXIST_ATTR = 'community_list'
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.community_list = {}
 
     def check(self) -> None:
@@ -43,7 +47,5 @@ class Community(BaseModule):
                     'To create a BGP community-list you need to provide a number, '
                     'sequence-number and action!'
                 )
-
-            validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
 
         self._base_check()

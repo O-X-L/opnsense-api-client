@@ -1,4 +1,8 @@
-from ..base.cls import GeneralModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import GeneralModule
 
 
 class General(GeneralModule):
@@ -10,10 +14,9 @@ class General(GeneralModule):
     API_MOD = 'quagga'
     API_CONT = 'ospfsettings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
-        'carp', 'id', 'cost', 'enabled', 'passive_ints', 'redistribute',
-        'redistribute_map', 'originate', 'originate_always', 'originate_metric',
+        'carp', 'id', 'cost', 'enabled', 'passive_ints',
+        'originate', 'originate_always', 'originate_metric',
     ]
     FIELDS_ALL = FIELDS_CHANGE
     FIELDS_TRANSLATE = {
@@ -23,19 +26,16 @@ class General(GeneralModule):
         'originate_always': 'originatealways',
         'originate_metric': 'originatemetric',
         'passive_ints': 'passiveinterfaces',
-        'redistribute_map': 'redistributemap',
     }
     FIELDS_TYPING = {
         'bool': ['enabled', 'carp', 'originate', 'originate_always'],
-        'list': ['passive_ints', 'redistribute'],
-        'select': ['redistribute_map'],
+        'list': ['passive_ints'],
         'int': ['originate_metric', 'cost'],
     }
-    FIELDS_IGNORE = ['prefixlists', 'routemaps', 'networks', 'interfaces']
     INT_VALIDATIONS = {
         'cost': {'min': 1, 'max': 4294967},
         'originate_metric': {'min': 0, 'max': 16777214},
     }
 
-    def __init__(self, m, result: dict):
-        GeneralModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None):
+        GeneralModule.__init__(self=self, m=module, r=result, s=session)

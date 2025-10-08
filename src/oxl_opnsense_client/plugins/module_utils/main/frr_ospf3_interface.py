@@ -1,5 +1,10 @@
-from ..helper.main import validate_int_fields, is_unset
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Interface(BaseModule):
@@ -14,7 +19,6 @@ class Interface(BaseModule):
     API_MOD = 'quagga'
     API_CONT = 'ospf6settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'interface', 'area', 'passive', 'cost', 'cost_demoted', 'carp_depend_on',
         'hello_interval', 'dead_interval', 'retransmit_interval', 'transmit_delay',
@@ -45,8 +49,8 @@ class Interface(BaseModule):
     }
     EXIST_ATTR = 'int'
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.int = {}
 
     def check(self) -> None:
@@ -55,7 +59,5 @@ class Interface(BaseModule):
                 self.m.fail_json(
                     'To create a OSPFv3 interface you need to provide its area!'
                 )
-
-            validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
 
         self._base_check()

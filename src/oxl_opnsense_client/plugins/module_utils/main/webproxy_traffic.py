@@ -1,4 +1,8 @@
-from ..base.cls import GeneralModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import GeneralModule
 
 
 class Traffic(GeneralModule):
@@ -11,7 +15,6 @@ class Traffic(GeneralModule):
     API_MOD = 'proxy'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'download_kb_max', 'upload_kb_max', 'throttle_kb_bandwidth',
         'throttle_kb_host_bandwidth', 'enabled',
@@ -31,5 +34,5 @@ class Traffic(GeneralModule):
         'bool': ['enabled']
     }
 
-    def __init__(self, m, result: dict):
-        GeneralModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None):
+        GeneralModule.__init__(self=self, m=module, r=result, s=session)

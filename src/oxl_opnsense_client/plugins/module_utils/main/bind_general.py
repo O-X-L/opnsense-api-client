@@ -1,5 +1,12 @@
-from ..helper.main import simplify_translate, validate_int_fields, is_ip, is_unset
-from ..base.cls import GeneralModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import \
+    simplify_translate
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_ip, is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import GeneralModule
 
 
 class General(GeneralModule):
@@ -11,9 +18,8 @@ class General(GeneralModule):
     API_MOD = 'bind'
     API_CONT = 'general'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
-        'ipv6', 'response_policy_zones', 'port', 'listen_ipv4', 'listen_ipv6',
+        'ipv6', 'response_policy_zones', 'port', 'listen_ipv4', 'listen_ipv6', 'query_acl',
         'query_source_ipv4', 'query_source_ipv6', 'transfer_source_ipv4', 'transfer_source_ipv6',
         'forwarders', 'filter_aaaa_v4', 'filter_aaaa_v6', 'filter_aaaa_acl', 'log_size',
         'cache_size', 'recursion_acl', 'transfer_acl', 'dnssec_validation', 'hide_hostname',
@@ -65,14 +71,13 @@ class General(GeneralModule):
         'port': {'min': 1, 'max': 65535},
     }
 
-    def __init__(self, m, result: dict):
-        GeneralModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None):
+        GeneralModule.__init__(self=self, m=module, r=result, s=session)
         self.existing_acls = None
         self.acls_needed = False
 
     def check(self) -> None:
-        # pylint: disable=W0201
-        validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
+        self._check_validators()
 
         for field in [
             'listen_ipv4', 'query_source_ipv4', 'transfer_source_ipv4',
@@ -81,12 +86,12 @@ class General(GeneralModule):
             if isinstance(self.p[field], list):
                 for ip in self.p[field]:
                     if not is_ip(ip, ignore_empty=True):
-                        self.m.fail(
+                        self.m.fail_json(
                             f"It seems you provided an invalid IP address as '{field}': '{ip}'"
                         )
 
                 if is_unset(self.p[field]):
-                    self.m.fail(
+                    self.m.fail_json(
                         f"You need to supply at least one value as '{field}'! "
                         'Leave it empty to only use localhost.'
                     )
@@ -94,7 +99,7 @@ class General(GeneralModule):
             else:
                 ip = self.p[field]
                 if not is_ip(ip, ignore_empty=True):
-                    self.m.fail(
+                    self.m.fail_json(
                         f"It seems you provided an invalid IP address as '{field}': '{ip}'"
                     )
 

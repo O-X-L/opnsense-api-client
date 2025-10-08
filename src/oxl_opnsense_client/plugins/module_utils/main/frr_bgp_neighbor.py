@@ -1,5 +1,10 @@
-from ..helper.main import validate_int_fields, is_ip, is_unset
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_ip, is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Neighbor(BaseModule):
@@ -14,14 +19,13 @@ class Neighbor(BaseModule):
     API_MOD = 'quagga'
     API_CONT = 'bgp'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'ip', 'as_number', 'password', 'weight', 'local_ip', 'source_int',
         'ipv6_link_local_int', 'next_hop_self', 'next_hop_self_all',
         'multi_hop', 'multi_protocol', 'rrclient', 'bfd', 'send_default_route',
         'as_override', 'disable_connected_check', 'keepalive', 'hold_down',
         'connect_timer', 'description', 'prefix_list_in', 'prefix_list_out',
-        'route_map_in', 'route_map_out',
+        'route_map_in', 'route_map_out', 'remote_as_mode',
     ]
     FIELDS_DIFF_NO_LOG = ['password']
     FIELDS_ALL = ['enabled']
@@ -52,7 +56,7 @@ class Neighbor(BaseModule):
         ],
         'select': [
             'source_int', 'ipv6_link_local_int', 'prefix_list_in', 'prefix_list_out',
-            'route_map_in', 'route_map_out',
+            'route_map_in', 'route_map_out', 'remote_as_mode',
         ],
     }
     INT_VALIDATIONS = {
@@ -68,26 +72,22 @@ class Neighbor(BaseModule):
         'existing_maps': 'bgp.routemaps.routemap',
     }
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.neighbor = {}
         self.existing_prefixes = None
         self.existing_maps = None
 
     def check(self) -> None:
         if self.p['state'] == 'present':
-            if is_unset(self.p['ip']) or is_unset(self.p['as_number']):
-                self.m.fail_json(
-                    'To create a BGP neighbor you need to provide its AS-number and peer-ip!'
-                )
+            if is_unset(self.p['ip']):
+                self.m.fail_json('To create a BGP neighbor you need to provide its peer-ip!')
 
             if not is_ip(self.p['ip']):
                 self.m.fail_json(f"Provided peer IP '{self.p['ip']}' is not a valid IP-Address!")
 
             if not is_unset(self.p['local_ip']) and not is_ip(self.p['local_ip']):
                 self.m.fail_json(f"Provided source IP '{self.p['local_ip']}' is not a valid IP-Address!")
-
-            validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
 
         self._base_check()
         self._find_links()

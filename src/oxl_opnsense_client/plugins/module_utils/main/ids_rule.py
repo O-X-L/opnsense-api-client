@@ -1,5 +1,10 @@
-from ..base.cls import BaseModule
-from ..helper.main import to_digit
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import \
+    to_digit
 
 
 class Rule(BaseModule):
@@ -25,15 +30,15 @@ class Rule(BaseModule):
     EXIST_ATTR = 'rule'
     QUERY_MAX_RULES = 5000
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.rule = {}
         self.exists = False
 
     def check(self) -> None:
         self._search_call()
         if not self.exists:
-            self.m.fail(f"The provided rule '{self.p[self.FIELD_PK]}' was not found!")
+            self.m.fail_json(f"The provided rule '{self.p[self.FIELD_PK]}' was not found!")
 
         self.r['diff']['after'] = self.b.build_diff(data=self.p)
         self.r['changed'] = self.r['diff']['before'] != self.r['diff']['after']

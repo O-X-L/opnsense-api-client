@@ -1,10 +1,29 @@
-from ..module_input import validate_input, ModuleInput, valid_results
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# Copyright: (C) 2025, Pascal Rath <contact+opnsense@OXL.at>
+# GNU General Public License v3.0+ (see https://www.gnu.org/licenses/gpl-3.0.txt)
+
+# see: https://docs.opnsense.org/development/api/plugins/quagga.html
+
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+    module_dependency_error, MODULE_EXCEPTIONS
+
+try:
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+        OPN_MOD_ARGS
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import single_get
+
+except MODULE_EXCEPTIONS:
+    module_dependency_error()
+
+# DOCUMENTATION = 'https://ansible-opnsense.oxl.app/modules/frr_diagnostic.html'
+# EXAMPLES = 'https://ansible-opnsense.oxl.app/modules/frr_diagnostic.html'
 
 
-def run_module(module_input: ModuleInput, result: dict = None) -> dict:
-    m = module_input
-    result = valid_results(result)
-
+def run_module():
     module_args = dict(
         target=dict(
             type='str', required=True,
@@ -17,23 +36,28 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
             ],
             description='What information to query'
         ),
+        **OPN_MOD_ARGS,
     )
 
-    validate_input(i=module_input, definition=module_args)
+    module = AnsibleModule(
+        argument_spec=module_args,
+        supports_check_mode=True,
+    )
 
     non_json = ['generalrunningconfig']
 
-    if m.params['target'] in non_json:
+    if module.params['target'] in non_json:
         params = []
 
     else:
         params = ['$format=”json”']
 
-    info = m.c.session.get(
+    info = single_get(
+        module=module,
         cnf={
             'module': 'quagga',
             'controller': 'diagnostics',
-            'command': m.params['target'],
+            'command': module.params['target'],
             'params': params,
         }
     )
@@ -44,4 +68,12 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
         if isinstance(info, str):
             info = info.strip()
 
-    return result
+    module.exit_json(data=info)
+
+
+def main():
+    run_module()
+
+
+if __name__ == '__main__':
+    main()

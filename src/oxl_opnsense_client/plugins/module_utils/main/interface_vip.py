@@ -1,21 +1,24 @@
-from ..helper.main import validate_int_fields
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Vip(BaseModule):
     CMDS = {
-        'add': 'addItem',
-        'del': 'delItem',
-        'set': 'setItem',
+        'add': 'add_item',
+        'del': 'del_item',
+        'set': 'set_item',
         'search': 'get',
     }
     API_KEY_PATH = 'vip.vip'
     API_MOD = 'interfaces'
     API_CONT = 'vip_settings'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'address', 'mode', 'expand', 'bind', 'gateway', 'password', 'vhid',
         'advertising_base', 'advertising_skew', 'description', 'interface',
+        'peer', 'peer6',
     ]
     FIELDS_ALL = FIELDS_CHANGE
     FIELDS_TRANSLATE = {
@@ -40,18 +43,14 @@ class Vip(BaseModule):
     }
     EXIST_ATTR = 'vip'
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.vip = {}
 
     def check(self) -> None:
         if self.p['address'].find('/') == -1:
-            self.m.fail('The address needs to include a subnet CIDR!')
+            self.m.fail_json('The address needs to include a subnet CIDR!')
 
-        if self.p['state'] == 'present':
-            validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
-
-        # pylint: disable=W0201
         self.existing_entries = self.get_existing()
         self._base_check()
 

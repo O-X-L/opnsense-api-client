@@ -1,6 +1,12 @@
-from ..helper.main import is_ip, valid_hostname, validate_port, is_true, is_unset
-from ..helper.unbound import validate_domain
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_ip, valid_hostname, is_true, is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.unbound import \
+    validate_domain
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class DnsOverTls(BaseModule):
@@ -15,7 +21,6 @@ class DnsOverTls(BaseModule):
     API_MOD = 'unbound'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = ['domain', 'target', 'port', 'verify']
     FIELDS_ALL = ['type', 'enabled']
     FIELDS_ALL.extend(FIELDS_CHANGE)
@@ -27,20 +32,22 @@ class DnsOverTls(BaseModule):
         'int': ['port'],
     }
     EXIST_ATTR = 'dot'
+    INT_VALIDATIONS = {
+        'port': {'min': 1, 'max': 65535},
+    }
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.dot = {}
 
     def check(self) -> None:
         if not is_unset(self.p['domain']):
-            validate_domain(m=self.m, domain=self.p['domain'])
-        validate_port(m=self.m, port=self.p['port'])
+            validate_domain(module=self.m, domain=self.p['domain'])
 
         if not is_unset(self.p['verify']) and \
                 not is_ip(self.p['verify']) and \
                 not valid_hostname(self.p['verify']):
-            self.m.fail(
+            self.m.fail_json(
                 f"Verify-value '{self.p['verify']}' is neither a valid IP-Address "
                 f"nor a valid hostname!"
             )
@@ -51,8 +58,7 @@ class DnsOverTls(BaseModule):
         else:
             self.b.find(match_fields=['domain', 'target'])
 
-        if self.p['state'] == 'present':
-            self.r['diff']['after'] = self.b.build_diff(data=self.p)
+        self._base_check()
 
     def _search_call(self) -> list:
         dots = []

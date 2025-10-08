@@ -1,5 +1,8 @@
-from ..helper.main import is_true, get_selected, get_selected_list, to_digit
-from ..base.cls import GeneralModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import GeneralModule
 
 
 class General(GeneralModule):
@@ -7,13 +10,11 @@ class General(GeneralModule):
         'set': 'set',
         'search': 'get',
     }
-    API_KEY = 'general'
-    API_KEY_1 = 'proxy'
-    API_KEY_PATH = f'{API_KEY_1}.{API_KEY}'
+    API_KEY_PATH = 'proxy.general'
+    API_KEY_PATH_REQ = API_KEY_PATH
     API_MOD = 'proxy'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'errors', 'icp_port', 'log', 'log_store', 'log_target', 'log_ignore',
         'dns_servers', 'use_via_header', 'handling_forwarded_for',
@@ -33,68 +34,26 @@ class General(GeneralModule):
         'connect_timeout': 'connecttimeout',
         'email': 'VisibleEmail',
         'hostname': 'VisibleHostname',
-    }
-    FIELDS_TRANSLATE_SPECIAL = {
-        'log': 'accessLog',
-        'log_store': 'storeLog',
-        'log_target': 'target',
-        'log_ignore': 'ignoreLogACL',
+        'log': ('logging', 'enable', 'accessLog'),
+        'log_store': ('logging', 'enable', 'storeLog'),
+        'log_target': ('logging', 'target'),
+        'log_ignore': ('logging', 'ignoreLogACL'),
     }
     FIELDS_TYPING = {
         'bool': [
-            'enabled', 'pinger', 'suppress_version', 'use_via_header',
+            'enabled', 'pinger', 'suppress_version', 'use_via_header', 'log', 'log_store',
         ],
-        'list': ['dns_servers'],  # log_ignore = special handling
+        'list': ['dns_servers', 'log_ignore'],
         'select': [
-            'errors', 'handling_forwarded_for', 'handling_uri_whitespace'
+            'errors', 'handling_forwarded_for', 'handling_uri_whitespace', 'log_target'
         ],
         'int': ['connect_timeout', 'icp_port'],
     }
-    FIELDS_IGNORE = ['logging', 'cache', 'traffic', 'parentproxy']
     INT_VALIDATIONS = {
         'connect_timeout': {'min': 1, 'max': 120},
         'icp_port': {'min': 1, 'max': 65535},
     }
     TIMEOUT = 60.0  # 'disable' taking long
 
-    def __init__(self, m, result: dict):
-        GeneralModule.__init__(self=self, m=m, r=result)
-
-    def _search_call(self) -> dict:
-        settings = self.s.get(cnf={
-            **self.call_cnf, **{'command': self.CMDS['search']}
-        })[self.API_KEY_1][self.API_KEY]
-
-        simple = self.b.simplify_existing(settings)
-
-        simple['log'] = is_true(
-            settings['logging']['enable'][self.FIELDS_TRANSLATE_SPECIAL['log']]
-        )
-        simple['log_store'] = is_true(
-            settings['logging']['enable'][self.FIELDS_TRANSLATE_SPECIAL['log_store']]
-        )
-        simple['log_target'] = get_selected(
-            settings['logging'][self.FIELDS_TRANSLATE_SPECIAL['log_target']]
-        )
-        simple['log_ignore'] = get_selected_list(
-            settings['logging'][self.FIELDS_TRANSLATE_SPECIAL['log_ignore']]
-        )
-
-        return simple
-
-    def _build_request(self) -> dict:
-        raw_request = self.b.build_request(
-            ignore_fields=['log', 'log_store', 'log_target', 'log_ignore']
-        )
-        raw_request[self.API_KEY]['logging'] = {
-            'enable': {
-                self.FIELDS_TRANSLATE_SPECIAL['log']: to_digit(self.p['log']),
-                self.FIELDS_TRANSLATE_SPECIAL['log_store']: to_digit(self.p['log_store']),
-            },
-            self.FIELDS_TRANSLATE_SPECIAL['log_target']: self.p['log_target'],
-            self.FIELDS_TRANSLATE_SPECIAL['log_ignore']: self.b.RESP_JOIN_CHAR.join(
-                self.p['log_ignore']
-            ),
-        }
-
-        return {self.API_KEY_1: raw_request}
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None):
+        GeneralModule.__init__(self=self, m=module, r=result, s=session)

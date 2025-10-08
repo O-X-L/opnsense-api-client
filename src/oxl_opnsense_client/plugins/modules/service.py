@@ -1,4 +1,28 @@
-from ..module_input import validate_input, ModuleInput, valid_results
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# Copyright: (C) 2025, Pascal Rath <contact+opnsense@OXL.at>
+# GNU General Public License v3.0+ (see https://www.gnu.org/licenses/gpl-3.0.txt)
+
+# module to interact with system services
+
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+    module_dependency_error, MODULE_EXCEPTIONS
+
+try:
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+        OPN_MOD_ARGS
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+        single_get, single_post
+
+except MODULE_EXCEPTIONS:
+    module_dependency_error()
+
+
+# DOCUMENTATION = 'https://ansible-opnsense.oxl.app/general/service.html'
+# EXAMPLES = 'https://ansible-opnsense.oxl.app/general/service.html'
 
 # c = api-module, m = custom action-mapping, a = limited actions
 SERVICES = {
@@ -19,7 +43,7 @@ SERVICES = {
         },
     },
     #   note: these would support more actions:
-    'ids': {}, 'proxy': {}, 'unbound': {},
+    'ids': {}, 'proxy': {}, 'unbound': {}, 'kea': {}, 'dnsmasq': {},
     # plugins
     'ftp_proxy': {'c': 'ftpproxy'},
     'iperf': {'a': ['reload', 'status', 'start', 'restart']},
@@ -51,10 +75,7 @@ API_CONTROLLER = 'service'
 
 
 # pylint: disable=R0915
-def run_module(module_input: ModuleInput, result: dict = None) -> dict:
-    m = module_input
-    result = valid_results(result)
-
+def run_module():
     service_choices = list(SERVICES.keys())
     service_choices.sort()
 
@@ -70,16 +91,24 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
             description='What action to execute. Some services may not support all of these actions - '
                         'the module will inform you in that case'
         ),
+        **OPN_MOD_ARGS,
     )
 
-    validate_input(i=module_input, definition=module_args)
+    result = dict(
+        changed=False,
+    )
 
-    name = m.params['name']
-    action = m.params['action']
+    module = AnsibleModule(
+        argument_spec=module_args,
+        supports_check_mode=True,
+    )
+
+    name = module.params['name']
+    action = module.params['action']
     service = SERVICES[name]
 
     if 'a' in service and action not in service['a']:
-        m.fail(
+        module.fail_json(
             f"Service '{name}' does not support the "
             f"provided action '{action}'! "
             f"Supported ones are: {service['a']}"
@@ -103,8 +132,9 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
         api_module = name
 
     # pull status or execute action
-    if m.params['action'] == 'status':
-        info = m.c.session.get(
+    if module.params['action'] == 'status':
+        info = single_get(
+            module=module,
             cnf={
                 'module': api_module,
                 'controller': API_CONTROLLER,
@@ -123,8 +153,9 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
     else:
         result['changed'] = True
 
-        if not m.check_mode:
-            m.c.session.post(
+        if not module.check_mode:
+            single_post(
+                module=module,
                 cnf={
                     'module': api_module,
                     'controller': API_CONTROLLER,
@@ -132,4 +163,12 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
                 }
             )
 
-    return result
+    module.exit_json(**result)
+
+
+def main():
+    run_module()
+
+
+if __name__ == '__main__':
+    main()

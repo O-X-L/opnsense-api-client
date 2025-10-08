@@ -9,10 +9,10 @@ from inspect import getfile as inspect_getfile
 
 from httpx import ConnectError, ConnectTimeout
 
-from ..defaults.main import DEBUG_CONFIG
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+    DEBUG_CONFIG
 
 
-# pylint: disable=R0915
 def profiler(
         check: Callable, kwargs: dict, module_name: str = None,
         sort: str = 'tottime', show_top_n: int = 20
@@ -33,10 +33,6 @@ def profiler(
 
     except (ConnectError, ConnectTimeout, ConnectionError) as error:
         httpx_error = str(error)
-
-    except:
-        _.disable()
-        raise
 
     _.disable()
     result = StringIO()

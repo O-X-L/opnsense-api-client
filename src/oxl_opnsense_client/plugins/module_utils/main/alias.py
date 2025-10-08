@@ -1,26 +1,32 @@
-from ..base.handler import ModuleSoftError
-from ..helper.alias import validate_values, filter_builtin_alias
-from ..helper.main import get_simple_existing, simplify_translate, is_unset
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+    ModuleSoftError
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.alias import \
+    validate_values, filter_builtin_alias, build_updatefreq
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import \
+    get_simple_existing, simplify_translate, is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Alias(BaseModule):
     FIELD_ID = 'name'
     CMDS = {
-        'add': 'addItem',
-        'del': 'delItem',
-        'set': 'setItem',
+        'add': 'add_item',
+        'del': 'del_item',
+        'set': 'set_item',
         'search': 'get',
         'toggle': 'toggleItem',
     }
     API_KEY_PATH = 'alias.aliases.alias'
     API_MOD = 'firewall'
     API_CONT = 'alias'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = ['content', 'description']
     FIELDS_ALL = ['name', 'type', 'enabled']
     FIELDS_ALL.extend(FIELDS_CHANGE)
-    FIELDS_ALL.extend(['updatefreq_days', 'interface'])
+    FIELDS_ALL.extend(['updatefreq_days', 'interface', 'path_expression'])
     FIELDS_TRANSLATE = {
         'updatefreq_days': 'updatefreq',
     }
@@ -34,24 +40,25 @@ class Alias(BaseModule):
     MAX_ALIAS_LEN = 32
 
     def __init__(
-            self, m, result: dict, cnf: dict = None,
-            fail_verify: bool = True, fail_proc: bool = True
+            self, module: AnsibleModule, result: dict, multi: dict = None,
+            session: Session = None, fail: dict = None,
     ):
-        BaseModule.__init__(self=self, m=m, r=result)
-        self.fail_verify = fail_verify
-        self.fail_proc = fail_proc
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail, multi=multi)
         self.alias = {}
-        self.p = self.m.params if cnf is None else cnf  # to allow override by alias_multi
 
     def check(self) -> None:
         if self.p['type'] == 'urltable':
             self.FIELDS_CHANGE = self.FIELDS_CHANGE + ['updatefreq_days']
-            if not is_unset(self.p['updatefreq_days']):
-                self.p['updatefreq_days'] = float(self.p['updatefreq_days'])
+            self.p['updatefreq_days'] = build_updatefreq(self.p['updatefreq_days'], default=True)
+
+        if self.p['type'] == 'urljson':
+            self.FIELDS_CHANGE = self.FIELDS_CHANGE + ['updatefreq_days', 'path_expression']
+            self.p['updatefreq_days'] = build_updatefreq(self.p['updatefreq_days'], default=True)
 
         if self.p['type'] == 'dynipv6host':
             if is_unset(self.p['interface']):
-                self.m.fail('You need to provide an interface to create a dynipv6host alias!')
+                self.m.fail_json('You need to provide an interface to create a dynipv6host alias!')
+
             self.FIELDS_CHANGE = self.FIELDS_CHANGE + ['interface']
 
         if len(self.p['name']) > self.MAX_ALIAS_LEN:
@@ -60,13 +67,12 @@ class Alias(BaseModule):
                 f"must be shorter than {self.MAX_ALIAS_LEN} characters",
             )
 
-        if self.p['state'] == 'present':
-            validate_values(error_func=self._error, cnf=self.p)
-
         self.b.find(match_fields=[self.FIELD_ID])
 
         if self.p['state'] == 'present':
-            self.r['diff']['after'] = self.b.build_diff(data=self.p)
+            validate_values(error_func=self._error, cnf=self.p, existing_entries=self.existing_entries)
+
+        self._base_check()
 
     def simplify_existing(self, alias: dict) -> dict:
         simple = {}
@@ -87,12 +93,8 @@ class Alias(BaseModule):
             **simple,
         }
 
-        if simple['type'] == 'urltable':
-            try:
-                simple['updatefreq_days'] = round(float(alias['updatefreq']), 1)
-
-            except ValueError:
-                simple['updatefreq_days'] = float(0)
+        if simple['type'] in ['urltable', 'urljson']:
+            simple['updatefreq_days'] = build_updatefreq(alias['updatefreq'], default=False)
 
         return simple
 
@@ -119,8 +121,8 @@ class Alias(BaseModule):
             )
 
     def _error(self, msg: str, verification: bool = True) -> None:
-        if (verification and self.fail_verify) or (not verification and self.fail_proc):
-            self.m.fail(msg)
+        if (verification and self.fail_verify) or (not verification and self.fail_process):
+            self.m.fail_json(msg)
 
         else:
             self.m.warn(msg)

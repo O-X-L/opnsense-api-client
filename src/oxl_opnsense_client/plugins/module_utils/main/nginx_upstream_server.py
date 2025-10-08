@@ -1,5 +1,9 @@
-from ..base.cls import BaseModule
-from ..helper.main import is_unset
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import is_unset
 
 
 class UpstreamServer(BaseModule):
@@ -15,7 +19,6 @@ class UpstreamServer(BaseModule):
     API_MOD = 'nginx'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'description', 'server', 'port', 'priority',
         'max_conns', 'max_fails', 'fail_timeout', 'no_use'
@@ -28,11 +31,10 @@ class UpstreamServer(BaseModule):
         'priority': {'min': 0, 'max': 1000000000},
         'port': {'min': 1, 'max': 65535},
     }
-    FIELDS_IGNORE = []
     EXIST_ATTR = 'upstream_server'
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.upstream_server = {}
 
     def check(self) -> None:

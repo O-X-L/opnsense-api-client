@@ -1,21 +1,25 @@
-from ..helper.main import  validate_int_fields, is_unset
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Pipe(BaseModule):
     FIELD_ID = 'description'
     CMDS = {
-        'add': 'addPipe',
-        'del': 'delPipe',
-        'set': 'setPipe',
+        'add': 'add_pipe',
+        'del': 'del_pipe',
+        'set': 'set_pipe',
         'search': 'get',
-        'toggle': 'togglePipe',
+        'toggle': 'toggle_pipe',
     }
     API_KEY_PATH = 'ts.pipes.pipe'
     API_MOD = 'trafficshaper'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'bandwidth', 'bandwidth_metric', 'queue', 'mask', 'buckets', 'scheduler',
         'codel_enable', 'codel_target', 'codel_interval', 'codel_ecn_enable',
@@ -45,16 +49,14 @@ class Pipe(BaseModule):
     EXIST_ATTR = 'pipe'
     TIMEOUT = 20.0  # 'get' timeout
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.pipe = {}
 
     def check(self) -> None:
         if self.p['state'] == 'present':
-            validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
-
             if is_unset(self.p['bandwidth']):
-                self.m.fail('You need to provide bandwidth to create a shaper pipe!')
+                self.m.fail_json('You need to provide bandwidth to create a shaper pipe!')
 
         self._base_check()
 

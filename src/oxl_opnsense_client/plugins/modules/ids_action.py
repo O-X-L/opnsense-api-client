@@ -1,5 +1,28 @@
-from ..module_input import validate_input, ModuleInput, valid_results
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
+# Copyright: (C) 2025, Pascal Rath <contact+opnsense@OXL.at>
+# GNU General Public License v3.0+ (see https://www.gnu.org/licenses/gpl-3.0.txt)
+
+# see: https://docs.opnsense.org/development/api/core/ids.html
+
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+    module_dependency_error, MODULE_EXCEPTIONS
+
+try:
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+        OPN_MOD_ARGS
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+        single_get, single_post
+
+except MODULE_EXCEPTIONS:
+    module_dependency_error()
+
+
+# DOCUMENTATION = 'https://ansible-opnsense.oxl.app/modules/ids.html'
+# EXAMPLES = 'https://ansible-opnsense.oxl.app/modules/ids.html'
 
 ACTION_MAPPING = {
     'get_alert_info': {'a': 'getAlertInfo', 'post': False},
@@ -15,11 +38,7 @@ ACTION_MAPPING = {
     'update_rules': {'a': 'updateRules', 'post': True},
 }
 
-
-def run_module(module_input: ModuleInput, result: dict = None) -> dict:
-    m = module_input
-    result = valid_results(result)
-
+def run_module():
     module_args = dict(
         action=dict(
             type='str', required=True, aliases=['do', 'a'],
@@ -33,13 +52,21 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
             type='str', required=False, aliases=['alert'],
             description="Parameter Alert-ID needed for 'get_alert_info'",
         ),
+        **OPN_MOD_ARGS,
     )
 
-    validate_input(i=module_input, definition=module_args)
+    result = dict(
+        changed=False,
+    )
 
-    action = m.params['action']
-    if action == 'get_alert_info' and m.params['alert_id'] is None:
-        m.fail("You need to provide an Alert-ID as 'alert_id' to execute 'get_alert_info'!")
+    module = AnsibleModule(
+        argument_spec=module_args,
+        supports_check_mode=True,
+    )
+
+    action = module.params['action']
+    if action == 'get_alert_info' and module.params['alert_id'] is None:
+        module.fail_json("You need to provide an Alert-ID as 'alert_id' to execute 'get_alert_info'!")
 
     # translate actions to api-commands
     cmd = action
@@ -52,8 +79,9 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
     if ACTION_MAPPING[action]['post']:
         result['changed'] = True
 
-        if not m.check_mode:
-            m.c.session.get(
+        if not module.check_mode:
+            single_post(
+                module=module,
                 cnf={
                     'module': 'ids',
                     'controller': 'service',
@@ -63,10 +91,11 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
 
     else:
         params = []
-        if m.params['alert_id'] is not None:
-            params = [m.params['alert_id']]
+        if module.params['alert_id'] is not None:
+            params = [module.params['alert_id']]
 
-        info = m.c.session.get(
+        info = single_get(
+            module=module,
             cnf={
                 'module': 'ids',
                 'controller': 'service',
@@ -83,4 +112,12 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
 
         result['data'] = info
 
-    return result
+    module.exit_json(**result)
+
+
+def main():
+    run_module()
+
+
+if __name__ == '__main__':
+    main()

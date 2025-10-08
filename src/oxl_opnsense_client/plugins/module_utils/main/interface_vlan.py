@@ -1,19 +1,23 @@
-from ..helper.main import validate_int_fields, is_unset
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Vlan(BaseModule):
     FIELD_ID = 'description'
     CMDS = {
-        'add': 'addItem',
-        'del': 'delItem',
-        'set': 'setItem',
+        'add': 'add_item',
+        'del': 'del_item',
+        'set': 'set_item',
         'search': 'get',
     }
     API_KEY_PATH = 'vlan.vlan'
     API_MOD = 'interfaces'
     API_CONT = 'vlan_settings'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = ['interface', 'vlan', 'priority', 'device']
     FIELDS_ALL = [FIELD_ID]
     FIELDS_ALL.extend(FIELDS_CHANGE)
@@ -34,8 +38,8 @@ class Vlan(BaseModule):
     }
     EXIST_ATTR = 'vlan'
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.vlan = {}
 
     def check(self) -> None:
@@ -48,8 +52,6 @@ class Vlan(BaseModule):
 
             if is_unset(self.p['device']):
                 self.p['device'] = f"vlan0.{self.p['vlan']}"  # OPNSense forces us to start with 'vlan0' for some reason
-
-            validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
 
         self._base_check()
 

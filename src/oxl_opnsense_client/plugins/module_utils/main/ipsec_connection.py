@@ -1,5 +1,8 @@
-from ..helper.main import validate_int_fields
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Connection(BaseModule):
@@ -16,12 +19,11 @@ class Connection(BaseModule):
     API_MOD = 'ipsec'
     API_CONT = 'connections'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'local_addresses', 'remote_addresses', 'pools', 'proposals', 'unique',
         'aggressive', 'version', 'mobike', 'encapsulation', 'reauth_seconds',
         'rekey_seconds', 'over_seconds', 'dpd_delay_seconds', 'dpd_timeout_seconds',
-        'send_certificate_request', 'send_certificate', 'keying_tries',
+        'send_certificate_request', 'send_certificate', 'keying_tries', 'local_port', 'remote_port'
     ]
     FIELDS_ALL = ['enabled', FIELD_ID]
     FIELDS_ALL.extend(FIELDS_CHANGE)
@@ -42,7 +44,7 @@ class Connection(BaseModule):
     FIELDS_TYPING = {
         'bool': ['enabled', 'aggressive', 'mobike', 'encapsulation', 'send_certificate_request'],
         'list': ['local_addresses', 'remote_addresses', 'pools', 'proposals'],
-        'select': ['send_certificate', 'unique'],
+        'select': ['send_certificate', 'unique', 'local_port', 'remote_port'],
         'select_opt_list': ['version'],  # don't know why this is a list instead of a dict
         'int': [
             'keying_tries', 'dpd_timeout_seconds', 'dpd_delay_seconds', 'over_seconds',
@@ -55,13 +57,17 @@ class Connection(BaseModule):
             'ikev1': 1,
             'ikev2': 2,
         },
+        'local_port': {'500': ''},
+        'remote_port': {'500': ''},
     }
     FIELDS_VALUE_MAPPING_RCV = {  # receiving
         'version': {
             'ikev1+2': 'IKEv1+IKEv2',
             'ikev1': 'IKEv1',
             'ikev2': 'IKEv2',
-        }
+        },
+        'local_port': {'500': ''},
+        'remote_port': {'500': ''},
     }
     INT_VALIDATIONS = {
         'keying_tries': {'min': 0, 'max': 1000},
@@ -76,15 +82,12 @@ class Connection(BaseModule):
         'existing_pools': 'swanctl.Pools.Pool',
     }
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.tunnel = {}
         self.existing_pools = None
 
     def check(self) -> None:
-        if self.p['state'] == 'present':
-            validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
-
         self._base_check()
 
         if self.p['state'] == 'present':

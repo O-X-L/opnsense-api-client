@@ -1,18 +1,53 @@
-from ..module_input import validate_input, ModuleInput, valid_results
-from ..module_utils.helper.wrapper import module_wrapper
-from ..module_utils.defaults.main import STATE_MOD_ARG, RELOAD_MOD_ARG
-from ..module_utils.defaults.openvpn import OPENVPN_INSTANCE_MOD_ARGS
-from ..module_utils.main.openvpn_server import Server
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# Copyright: (C) 2025, Pascal Rath <contact+opnsense@OXL.at>
+# GNU General Public License v3.0+ (see https://www.gnu.org/licenses/gpl-3.0.txt)
+
+# template to be copied to implement new modules
+
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+    module_dependency_error, MODULE_EXCEPTIONS
+
+try:
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.wrapper import module_wrapper
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+        OPN_MOD_ARGS, STATE_MOD_ARG, RELOAD_MOD_ARG
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.openvpn import \
+        OPENVPN_INSTANCE_MOD_ARGS
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.openvpn_server import Server
+
+except MODULE_EXCEPTIONS:
+    module_dependency_error()
 
 
-def run_module(module_input: ModuleInput, result: dict = None) -> dict:
-    result = valid_results(result)
+# DOCUMENTATION = 'https://ansible-opnsense.oxl.app/modules/openvpn.html'
+# EXAMPLES = 'https://ansible-opnsense.oxl.app/modules/openvpn.html'
 
+USER_CN_STRICT_MAP = {
+    'no': 0,
+    'false': 0,
+    'False': 0,
+    'yes': 1,
+    'true': 1,
+    'True': 1,
+    'case-insensitive': 2,
+    'ci': 2,
+}
+
+def run_module():
     module_args = dict(
         # general
         port=dict(
             type='int', required=False, default=1194, aliases=['local_port', 'bind_port'],
             description='Port number to use'
+        ),
+        port_share=dict(
+            type='str', required=False,
+            description='Proxy the connection to the given host:port when a non-OpenVPN protocol '
+                        'connections is detected.'
         ),
         server_ip4=dict(
             type='str', required=False, aliases=['server', 'client_net_ip4', 'net_ip4'],
@@ -25,6 +60,11 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
             description='This directive will set up an OpenVPN server which will allocate addresses to clients '
                         'out of the given network/netmask. The server itself will take the next base address (+1) '
                         'of the given network for use as the server-side endpoint of the local TUN/TAP interface'
+        ),
+        pool=dict(
+            type='bool', required=False, default=True,
+            description='Set up a dynamic pool for the server directive. IP addresses will otherwise only be pushed '
+                        'to a client if specified in a CSO.'
         ),
         max_connections=dict(
             type='int', required=False, aliases=['max_conn', 'max_clients'],
@@ -92,7 +132,8 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
                         'from the client certificate.'
         ),
         user_cn_strict=dict(
-            type='bool', required=False, default=False, aliases=['username_cn_strict'],
+            type='str', required=False, default=False, aliases=['username_cn_strict'],
+            choices=list(USER_CN_STRICT_MAP.keys()),
             description='When authenticating users, enforce a match between the Common Name of the client '
                         'certificate and the username given at login.'
         ),
@@ -106,6 +147,21 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
                         'mechanisms. When set to 0, the token will never expire, any other value specifies the '
                         'lifetime in seconds.'
         ),
+        auth_token_renewal=dict(
+            type='int', required=False, aliases=['auth_renewal', 'token_renewal'],
+            description='How often the auth token will be renewed, token expire after 2 * renewal time.'
+        ),
+        auth_token_secret=dict(
+            type='string', required=False, aliases=['auth_secret', 'token_secret'], no_log=True,
+            description=' Optional secret for use with auth-gen-token. This is useful to allow failover between '
+                        'multiple servers without user interaction.'
+        ),
+        require_client_provisioning=dict(
+            type='bool', required=False, default=False, aliases=['provision_exclusive'],
+            description='Require, as a condition for authentication, that a tunnel address will be provisioned '
+                        'either from a local defined client-specific override or offered by an authenticator '
+                        '(such as RADIUS).'
+        ),
         # misc
         push_options=dict(
             type='list', elements='str', required=False, default=[], aliases=['push_opts'],
@@ -115,7 +171,7 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
         ),
         redirect_gateway=dict(
             type='list', elements='str', required=False, default=[], aliases=['redirect_gw', 'redir_gw'],
-            choices=['local', 'autolocal', 'def1', 'bypass_dhcp', 'bypass_dns', 'block_local', 'ipv6', 'notipv4'],
+            choices=['local', 'autolocal', 'def1', 'bypass-dhcp', 'bypass-dns', 'block-local', 'ipv6', '!ipv4'],
             description='Automatically execute routing commands to cause all outgoing IP traffic to be '
                         'redirected over the VPN.',
         ),
@@ -147,12 +203,40 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
             description='Set primary NTP server address (Network Time Protocol). '
                         'Repeat this option to set secondary NTP server addresses.'
         ),
+        persist_address_pool=dict(
+            type='bool', required=False, default=False,
+            description='Save ip address pool to disk.'
+        ),
         **OPENVPN_INSTANCE_MOD_ARGS,
         **RELOAD_MOD_ARG,
         **STATE_MOD_ARG,
+        **OPN_MOD_ARGS,
     )
 
 
-    validate_input(i=module_input, definition=module_args)
-    module_wrapper(Server(m=module_input, result=result))
-    return result
+
+    result = dict(
+        changed=False,
+        diff={
+            'before': {},
+            'after': {},
+        }
+    )
+
+    module = AnsibleModule(
+        argument_spec=module_args,
+        supports_check_mode=True,
+    )
+
+    module.params['user_cn_strict'] = USER_CN_STRICT_MAP[module.params['user_cn_strict']]
+
+    module_wrapper(Server(module=module, result=result))
+    module.exit_json(**result)
+
+
+def main():
+    run_module()
+
+
+if __name__ == '__main__':
+    main()

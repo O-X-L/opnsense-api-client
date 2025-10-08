@@ -1,4 +1,8 @@
-from ..base.cls import GeneralModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import GeneralModule
 
 
 class Blocklist(GeneralModule):
@@ -10,7 +14,6 @@ class Blocklist(GeneralModule):
     API_MOD = 'bind'
     API_CONT = 'dnsbl'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'safe_google', 'safe_duckduckgo', 'safe_youtube', 'safe_bing',
         'exclude', 'block', 'enabled',
@@ -32,5 +35,5 @@ class Blocklist(GeneralModule):
         'list': ['exclude', 'block'],
     }
 
-    def __init__(self, m, result: dict):
-        GeneralModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None):
+        GeneralModule.__init__(self=self, m=module, r=result, s=session)

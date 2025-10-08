@@ -1,21 +1,31 @@
-from ..base.handler import ModuleSoftError
-from ..helper.main import get_multiple_matching, is_unset, is_ip4, is_ip6
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+    ModuleSoftError
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import \
+    get_multiple_matching
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_ip4, is_ip6, is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.bind_domain import Domain
 
 
 class Record(BaseModule):
+    MULTI_DIFF_KEY = 'name'
     CMDS = {
         'add': 'addRecord',
         'del': 'delRecord',
         'set': 'setRecord',
-        'search': 'get',
+        'search': 'searchRecord',
+        'detail': 'getRecord',
         'toggle': 'toggleRecord',
     }
-    API_KEY_PATH = 'record.records.record'
+    API_KEY_PATH = 'record'
     API_MOD = 'bind'
     API_CONT = 'record'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = ['value']
     FIELDS_ALL = ['domain', 'name', 'type', 'enabled']
     FIELDS_ALL.extend(FIELDS_CHANGE)
@@ -27,13 +37,10 @@ class Record(BaseModule):
     EXIST_ATTR = 'record'
 
     def __init__(
-            self, m, result: dict, cnf: dict = None,
-            fail_verify: bool = True, fail_proc: bool = True
+            self, module: AnsibleModule, result: dict, multi: dict = None,
+            session: Session = None, fail: dict = None,
     ):
-        BaseModule.__init__(self=self, m=m, r=result)
-        self.p = self.m.params if cnf is None else cnf  # to allow override by bind_record_multi
-        self.fail_verify = fail_verify
-        self.fail_proc = fail_proc
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail, multi=multi)
         self.existing = []
         self.record = {}
         self.existing_entries = None
@@ -53,16 +60,15 @@ class Record(BaseModule):
 
             else:
                 if self.p['type'] == 'A' and not is_ip4(self.p['value']):
-                    self.m.fail(f"Value '{self.p['value']}' is not a valid IPv4-address!")
+                    self.m.fail_json(f"Value '{self.p['value']}' is not a valid IPv4-address!")
+
                 elif self.p['type'] == 'AAAA' and not is_ip6(self.p['value']):
-                    self.m.fail(f"Value '{self.p['value']}' is not a valid IPv6-address!")
+                    self.m.fail_json(f"Value '{self.p['value']}' is not a valid IPv6-address!")
 
         # custom matching as dns round-robin allows for multiple records to match..
+        self.search_call_domains()
         if self.existing_entries is None:
             self.existing_entries = self.get_existing()
-
-        if self.existing_domains is None:
-            self.existing_domains = self.search_call_domains()
 
         if len(self.existing_domains) == 0:
             if self.p['state'] == 'present':
@@ -72,7 +78,7 @@ class Record(BaseModule):
             domain_found = False
             if self.existing_domain_mapping is None:
                 for uuid, dom in self.existing_domains.items():
-                    if dom['domainname'] == self.p['domain']:
+                    if dom['domainname'] == self.p['domain'] or uuid == self.p['domain']:
                         self.p['domain'] = uuid
                         domain_found = True
                         break
@@ -89,7 +95,7 @@ class Record(BaseModule):
                 )
 
             self.existing = get_multiple_matching(
-                m=self.m, existing_items=self.existing_entries,
+                module=self.m, existing_items=self.existing_entries,
                 compare_item=self.p, match_fields=self.p['match_fields'],
                 simplify_func=self.b.simplify_existing,
             )
@@ -97,7 +103,7 @@ class Record(BaseModule):
             self.exists_rr = len(self.existing) > 1
             self.exists = len(self.existing) == 1
 
-            if self.exists_rr:
+            if self.exists_rr or self.p.get('round_robin', False):
                 self.r['diff']['before'] = self.existing
 
             else:
@@ -106,17 +112,41 @@ class Record(BaseModule):
                     self.r['diff']['before'] = self.record
                     self.call_cnf['params'] = [self.record['uuid']]
 
-                if self.p['state'] == 'present':
-                    self.r['diff']['after'] = self.b.build_diff(data=self.p)
+        self._base_check()
 
-    def search_call_domains(self) -> dict:
-        return self.s.get(cnf={
-            **self.call_cnf, **{'command': self.CMDS['search'], 'controller': 'domain'}
-        })['domain']['domains']['domain']
+    def _search_call(self) -> list:
+        self.search_call_domains()
+
+        existing = []
+        for uuid in self.existing_domains:
+            existing.extend(self.b.api_search_post(
+                cnf={
+                    'module': self.API_MOD,
+                    'controller': self.API_CONT,
+                    'command': self.CMDS['search'],
+                },
+                data={'domain': uuid}
+            ))
+
+        return existing
+
+    def search_call_domains(self):
+        if self.existing_domains is not None:
+            return
+
+        data = self.s.get(cnf={
+            'module': Domain.API_MOD,
+            'controller': Domain.API_CONT,
+            'command': Domain.CMDS['search'],
+        })
+        for k in Domain.API_KEY_PATH.split('.'):
+            data = data[k]
+
+        self.existing_domains = data
 
     def _error(self, msg: str, verification: bool = True) -> None:
-        if (verification and self.fail_verify) or (not verification and self.fail_proc):
-            self.m.fail(msg)
+        if (verification and self.fail_verify) or (not verification and self.fail_process):
+            self.m.fail_json(msg)
 
         else:
             self.m.warn(msg)

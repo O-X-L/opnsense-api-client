@@ -1,6 +1,12 @@
-from ..helper.main import is_unset, validate_int_fields, validate_str_fields
-from ..base.cls import BaseModule
-from ..base.handler import ModuleSoftError
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+    ModuleSoftError
 
 
 class BaseAuth(BaseModule):
@@ -8,7 +14,6 @@ class BaseAuth(BaseModule):
     API_MOD = 'ipsec'
     API_CONT = 'connections'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'connection', 'round', 'authentication', 'id', 'eap_id', 'certificates',
         'public_keys',
@@ -41,8 +46,8 @@ class BaseAuth(BaseModule):
         'existing_remote_auth': 'swanctl.remotes.remote',
     }
 
-    def __init__(self, m, r: dict):
-        BaseModule.__init__(self=self, m=m, r=r)
+    def __init__(self, m: AnsibleModule, r: dict, s: Session = None, f: dict = None):
+        BaseModule.__init__(self=self, m=m, r=r, s=s, f=f)
         self.auth = {}
         self.existing_conns = None
         self.pubkey_link_found = False
@@ -53,14 +58,8 @@ class BaseAuth(BaseModule):
 
     def check(self) -> None:
         if self.p['state'] == 'present':
-            validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
-            validate_str_fields(
-                m=self.m, data=self.p, allow_empty=True,
-                field_minmax_length=self.STR_LEN_VALIDATIONS
-            )
-
             if is_unset(self.p['connection']):
-                self.m.fail(
+                self.m.fail_json(
                     "You need to provide a 'connection' to create an IPSec auth!"
                 )
 
@@ -68,14 +67,14 @@ class BaseAuth(BaseModule):
                     is_unset(self.p['certificates']) and
                     is_unset(self.p['public_keys'])
             ):
-                self.m.fail(
+                self.m.fail_json(
                     "You need to provide at least one certificate or public-key to use the 'pubkey' "
                     'authentication method!'
                 )
 
             if self.p['authentication'] in ['eap_tls', 'eap_mschapv2', 'eap_radius'] and \
                     is_unset(self.p['eap_id']):
-                self.m.fail(
+                self.m.fail_json(
                     f"You need to provide an 'eap_id' to use the '{self.p['authentication']}' "
                     'authentication method!'
                 )
@@ -108,7 +107,6 @@ class BaseAuth(BaseModule):
             self.b.create()
 
             self.auth = {}
-            # pylint: disable=W0201
             self.existing_entries = None
             self.existing_local_auth = None
             self.existing_remote_auth = None

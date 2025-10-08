@@ -1,22 +1,26 @@
-from ..helper.main import is_unset
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import \
+    is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class DhcRelayRelay(BaseModule):
     FIELD_ID = 'interface'
     CMDS = {
-        'add': 'addRelay',
-        'del': 'delRelay',
-        'set': 'setRelay',
+        'add': 'add_relay',
+        'del': 'del_relay',
+        'set': 'set_relay',
         'search': 'get',
-        'toggle': 'toggleRelay',
+        'toggle': 'toggle_relay',
     }
     API_KEY_PATH = 'dhcrelay.relays'
     API_KEY_PATH_REQ = 'relay'
     API_MOD = 'dhcrelay'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = ['destination', 'agent_info']
     FIELDS_ALL = [FIELD_ID, 'enabled']
     FIELDS_ALL.extend(FIELDS_CHANGE)
@@ -29,8 +33,8 @@ class DhcRelayRelay(BaseModule):
         'existing_destinations': 'dhcrelay.destinations',
     }
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.relay = {}
         self.existing_destinations = None
 

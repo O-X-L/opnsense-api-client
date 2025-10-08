@@ -1,4 +1,8 @@
-from ..base.cls import GeneralModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import GeneralModule
 
 
 # Supported as of OPNsense 23.7
@@ -22,11 +26,5 @@ class DnsBL(GeneralModule):
         'list': ['type', 'lists', 'whitelists', 'blocklists', 'wildcards'],
     }
 
-    def __init__(self, m, result: dict):
-        GeneralModule.__init__(self=self, m=m, r=result)
-
-    def check(self) -> None:
-        # pylint: disable=W0201
-        self.settings = self._search_call()
-
-        self._build_diff()
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None):
+        GeneralModule.__init__(self=self, m=module, r=result, s=session)

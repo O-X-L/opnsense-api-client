@@ -1,17 +1,20 @@
 from typing import Callable
-from ipaddress import ip_address, ip_network, IPv4Address, IPv6Address, IPv6Network, AddressValueError, \
-    NetmaskValueError
-from re import match as regex_match
+from functools import reduce
 
-from ..base.handler import exit_bug, exit_cnf
-from .validate import is_valid_domain
+from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+    exit_bug, exit_cnf
 
 
-def diff_remove_empty(diff: dict) -> dict:
+def diff_remove_empty(diff: dict, to_none: bool = False) -> dict:
     d = diff.copy()
     for k in diff:
         if len(diff[k]) == 0:
-            d.pop(k)
+            if to_none:
+                d[k] = None
+
+            else:
+                d.pop(k)
 
     return d
 
@@ -27,84 +30,8 @@ def ensure_list(data: (int, str, list, None)) -> list:
     return [data]
 
 
-def is_ip(host: str, ignore_empty: bool = False, strip_enclosure: bool = True) -> bool:
-    if ignore_empty and is_unset(host):
-        return True
-
-    if strip_enclosure and host.startswith('['):
-        host = host[1:-1]
-
-    try:
-        ip_address(host)
-        return True
-
-    except ValueError:
-        return False
-
-
-def is_ip4(host: str, ignore_empty: bool = False) -> bool:
-    if ignore_empty and is_unset(host):
-        return True
-
-    try:
-        IPv4Address(host)
-        return True
-
-    except (AddressValueError, NetmaskValueError):
-        return False
-
-
-def is_ip6(host: str, ignore_empty: bool = False, strip_enclosure: bool = True) -> bool:
-    if ignore_empty and is_unset(host):
-        return True
-
-    if strip_enclosure and host.startswith('['):
-        host = host[1:-1]
-
-    try:
-        IPv6Address(host)
-        return True
-
-    except (AddressValueError, NetmaskValueError):
-        return False
-
-
-def is_network(entry: str, strict: bool = False) -> bool:
-    try:
-        ip_network(entry, strict=strict)
-        return True
-
-    except ValueError:
-        return False
-
-
-def is_ip_or_network(entry: str, strict: bool = False) -> bool:
-    valid = is_ip(entry)
-
-    if valid:
-        return valid
-
-    return is_network(entry=entry, strict=strict)
-
-
-def is_ip6_network(entry: str, strict: bool = False) -> bool:
-    try:
-        return isinstance(ip_network(entry, strict=strict), IPv6Network)
-
-    except ValueError:
-        return False
-
-
-def valid_hostname(name: str) -> bool:
-    _valid_domain = is_valid_domain(name)
-    # see: https://en.wikipedia.org/wiki/Hostname#Restrictions_on_valid_host_names
-    expr_hostname = r'^[a-zA-Z0-9-\.]{1,253}$'
-    _valid_hostname = regex_match(expr_hostname, name) is not None
-    return all([_valid_domain, _valid_hostname])
-
-
 def get_matching(
-        m, existing_items: (dict, list), compare_item: dict,
+        module: AnsibleModule, existing_items: (dict, list), compare_item: dict,
         match_fields: list, simplify_func: Callable = None,
 ) -> (dict, None):
     matching = None
@@ -128,9 +55,9 @@ def get_matching(
                 for field in match_fields:
                     _matching.append(str(existing[field]) == str(compare_item[field]))
 
-                    if m.params['debug']:
+                    if module.params['debug']:
                         if existing[field] != compare_item[field]:
-                            m.info(
+                            module.warn(
                                 f"NOT MATCHING: "
                                 f"'{existing[field]}' != '{compare_item[field]}'"
                             )
@@ -150,7 +77,7 @@ def get_matching(
 
 
 def get_multiple_matching(
-        m, existing_items: (dict, list), compare_item: dict,
+        module: AnsibleModule, existing_items: (dict, list), compare_item: dict,
         match_fields: list, simplify_func: Callable = None,
 ) -> list:
     matching = []
@@ -166,7 +93,7 @@ def get_multiple_matching(
 
         for existing in existing_items:
             _simple = get_matching(
-                m=m,
+                module=module,
                 existing_items=[existing],
                 compare_item=compare_item,
                 match_fields=match_fields,
@@ -176,45 +103,6 @@ def get_multiple_matching(
                 matching.append(_simple)
 
     return matching
-
-
-def validate_port(m, port: (int, str), error_func: Callable = None) -> bool:
-    if error_func is None:
-        error_func = m.fail
-
-    if port == 'any' or is_unset(port):
-        return True
-
-    try:
-        if int(port) < 1 or int(port) > 65535:
-            error_func(f"Value '{port}' is an invalid port!")
-            return False
-
-    except (ValueError, TypeError):
-        error_func(f"Value '{port}' is an invalid port!")
-        return False
-
-    return True
-
-
-def validate_int_fields(
-        m, data: dict, field_minmax: dict,
-        error_func: Callable = None
-):
-    if error_func is None:
-        error_func = m.fail
-
-    for field, valid in field_minmax.items():
-        try:
-            if ('min' in valid and int(data[field]) < valid['min']) or \
-               ('max' in valid and int(data[field]) > valid['max']):
-                error_func(
-                    f"Value of field '{field}' is not valid - "
-                    f"Must be between {valid['min']} and {valid['max']}!"
-                )
-
-        except (TypeError, ValueError):
-            pass
 
 
 def is_true(data: (str, int, bool)) -> bool:
@@ -233,7 +121,7 @@ def get_selected(data: dict) -> (str, None):
     return data
 
 
-def get_selected_value(data: dict) -> (str, None):
+def get_selected_value(data: (dict, list)) -> (str, None):
     if isinstance(data, dict):
         for values in data.values():
             if is_true(values['selected']) and 'value' in values:
@@ -269,10 +157,38 @@ def get_selected_opt_list_idx(data: list) -> int:
 
     return 0
 
-def get_selected_list(data: dict, remove_empty: bool = False) -> list:
-    if isinstance(data, list):
+
+def get_selected_multi(data: (dict, list), get_value: bool = False) -> list:
+    if isinstance(data, list) and len(data) > 0 and not isinstance(data[0], dict):
         # if function is re-applied
         return data
+
+    selected_values = []
+    if isinstance(data, dict):
+        for key, values in data.items():
+            if is_true(values['selected']):
+                if not get_value:
+                    selected_values.append(key)
+
+                if get_value and 'value' in values:
+                    selected_values.append(values['value'])
+
+    if isinstance(data, list):
+        for values in data:
+            if is_true(values['selected']) and 'value' in values:
+                selected_values.append(values['value'])
+
+    return selected_values
+
+
+def get_selected_list(data: dict, remove_empty: bool = False, get_value: bool = False) -> list:
+    if isinstance(data, list):
+        if len(data) == 0:
+            return []
+
+        if not isinstance(data[0], dict):
+            # if function is re-applied
+            return data
 
     if isinstance(data, str):
         if data.strip() == '':
@@ -280,18 +196,14 @@ def get_selected_list(data: dict, remove_empty: bool = False) -> list:
 
         return data.split(',')
 
-    selected = []
-    if len(data) > 0:
-        try:
-            for key, values in data.items():
-                if remove_empty and key in [None, '', ' ']:
-                    continue
+    selected = get_selected_multi(data=data, get_value=get_value)
+    if remove_empty:
+        for key in [None, '', ' ']:
+            if key in selected:
+                selected.remove(key)
 
-                if is_true(values['selected']):
-                    selected.append(key)
-
-        except AttributeError:
-            exit_bug(f"Got data entry that is not a dictionary => '{data}'")
+    if 'System: Deny config write' in selected:
+        raise exit_bug(f"TEST: {data}")
 
     selected.sort()
     return selected
@@ -358,39 +270,12 @@ def get_simple_existing(
     return simple_entries
 
 
-def validate_str_fields(
-        m, data: dict, field_regex: dict = None,
-        field_minmax_length: dict = None, allow_empty: bool = False,
-) -> None:
-    if field_minmax_length is not None:
-        for field, min_max_length in field_minmax_length.items():
-            if not unset_check_error(params=data, field=field, fail=not allow_empty):
-                continue
-
-            if 'min' not in min_max_length or 'max' not in min_max_length:
-                exit_bug("Values of 'STR_LEN_VALIDATIONS' must have a 'min' and 'max' attribute!")
-
-            if min_max_length['min'] < len(data[field]) > min_max_length['max']:
-                m.fail(
-                    f"Value of field '{field}' is not valid - "
-                    f"Invalid length must be between {min_max_length['min']} and {min_max_length['max']}!"
-                )
-
-    if field_regex is not None:
-        for field, regex in field_regex.items():
-            if not unset_check_error(params=data, field=field, fail=not allow_empty):
-                continue
-
-            if regex_match(regex, data[field]) is None:
-                m.fail(
-                    f"Value of field '{field}' is not valid - "
-                    f"Must match regex '{regex}'!"
-                )
-
-
-def format_int(data: (int, str)) -> (int, str):
+def format_int(data: (int, str)) -> (int, str, None):
     if isinstance(data, int):
         return data
+
+    if data is None:
+        return None
 
     if data.isnumeric():
         return int(data)
@@ -401,8 +286,11 @@ def format_int(data: (int, str)) -> (int, str):
 def sort_param_lists(params: dict) -> None:
     for k in params:
         if isinstance(params[k], list):
-            params[k].sort()
+            try:
+                params[k].sort()
 
+            except TypeError:
+                pass
 
 # pylint: disable=R0914,R0915
 def simplify_translate(
@@ -431,6 +319,8 @@ def simplify_translate(
         for k, v in translate.items():
             if v in existing:
                 simple[k] = existing[v]
+            elif isinstance(v, tuple):
+                simple[k] = reduce(lambda e, i: e[i], v, existing)
 
         translate_fields = translate.values()
         for k in existing:
@@ -440,6 +330,9 @@ def simplify_translate(
         # correct value types to match (for diff-checks)
         for t, fields in typing.items():
             for f in fields:
+                if f in ignore:
+                    continue
+
                 if t == 'bool':
                     simple[f] = is_true(simple[f])
 
@@ -447,7 +340,10 @@ def simplify_translate(
                     simple[f] = format_int(simple[f])
 
                 elif t == 'list':
-                    simple[f] = get_selected_list(data=simple[f], remove_empty=True)
+                    simple[f] = get_selected_list(data=simple[f], remove_empty=True, get_value=False)
+
+                elif t == 'list_value':
+                    simple[f] = get_selected_list(data=simple[f], remove_empty=True, get_value=True)
 
                 elif t == 'select':
                     simple[f] = get_selected(simple[f])

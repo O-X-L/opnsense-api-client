@@ -1,12 +1,31 @@
-from ..module_input import validate_input, ModuleInput, valid_results
-from ..module_utils.helper.wrapper import module_wrapper
-from ..module_utils.defaults.main import STATE_MOD_ARG, RELOAD_MOD_ARG
-from ..module_utils.main.gateway import Gw
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# Copyright: (C) 2025, Pascal Rath <contact+opnsense@OXL.at>
+# GNU General Public License v3.0+ (see https://www.gnu.org/licenses/gpl-3.0.txt)
+
+# see: https://docs.opnsense.org/development/api/core/routing.html
+
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+    module_dependency_error, MODULE_EXCEPTIONS
+
+try:
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.wrapper import module_wrapper
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+        OPN_MOD_ARGS, STATE_MOD_ARG, RELOAD_MOD_ARG
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.gateway import Gw
+
+except MODULE_EXCEPTIONS:
+    module_dependency_error()
 
 
-def run_module(module_input: ModuleInput, result: dict = None) -> dict:
-    result = valid_results(result)
+# DOCUMENTATION = 'https://ansible-opnsense.oxl.app/modules/routing.html'
+# EXAMPLES = 'https://ansible-opnsense.oxl.app/modules/routing.html'
 
+
+def run_module():
     module_args = dict(
         name=dict(
             type='str', required=False,
@@ -15,6 +34,10 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
         interface=dict(
             type='str', required=False, aliases=['int', 'if'],
             description='Interface for Gateway'
+        ),
+        ip_protocol=dict(
+            type='str', required=False, choices=['inet', 'inet6'],
+            description='The Internet Protocol this gateway uses.',
         ),
         gateway=dict(
             type='str', required=False, aliases=['gw', 'ip'],
@@ -101,14 +124,45 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
         ),
         data_length=dict(
             type='int', required=False,
-            description='Specify the number of data bytes to be sent. Default is 0.',
-            default=0
+            description='Specify the number of data bytes to be sent. Default is 1.',
+            default=1
         ),
         description=dict(type='str', required=False, aliases=['desc']),
+        match_fields=dict(
+            type='list', required=False, elements='str',
+            description='Fields that are used to match configured gateways with the running config - '
+                        "if any of those fields are changed, the module will think it's a new gateway",
+            choices=['name', 'gateway', 'description'],
+            default=['name', 'gateway'],
+        ),
         **RELOAD_MOD_ARG,
         **STATE_MOD_ARG,
+        **OPN_MOD_ARGS,
     )
 
-    validate_input(i=module_input, definition=module_args)
-    module_wrapper(Gw(m=module_input, result=result))
-    return result
+    result = dict(
+        changed=False,
+        diff={
+            'before': {},
+            'after': {},
+        }
+    )
+
+    module = AnsibleModule(
+        argument_spec=module_args,
+        supports_check_mode=True,
+        required_if=[
+            ('state', 'present', ('gateway', 'ip_protocol'), True),
+        ],
+    )
+
+    module_wrapper(Gw(module=module, result=result))
+    module.exit_json(**result)
+
+
+def main():
+    run_module()
+
+
+if __name__ == '__main__':
+    main()

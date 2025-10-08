@@ -1,4 +1,9 @@
-from ..helper.main import is_true
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import \
+    is_true
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
 
 
 class Package:
@@ -7,10 +12,13 @@ class Package:
     API_CONT = 'firmware'
     TIMEOUT = 60.0
 
-    def __init__(self, m, name: str):
-        self.m = m
-        self.p = m.params
-        self.s = m.c.session
+    def __init__(self, module: AnsibleModule, name: str, session: Session = None):
+        self.m = module
+        self.p = module.params
+        self.s = Session(
+            module=module,
+            timeout=self.TIMEOUT,
+        ) if session is None else session
         self.n = name
         self.r = {
             'changed': False, 'version': None,
@@ -51,7 +59,7 @@ class Package:
     def check_lock(self) -> None:
         if self.p['action'] in ['reinstall', 'remove', 'install'] and \
                 self.r['diff']['before']['locked']:
-            self.m.fail(
+            self.m.fail_json(
                 f"Unable to execute action '{self.p['action']}' - "
                 f"package is locked!"
             )
@@ -63,7 +71,7 @@ class Package:
         })
 
         if str(status).find(self.UPGRADE_MSG) != -1:
-            self.m.fail(
+            self.m.fail_json(
                 f"Unable to execute action '{self.p['action']}' - "
                 f"system needs to be upgraded beforehand!"
             )

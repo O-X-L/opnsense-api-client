@@ -1,21 +1,25 @@
-from ..helper.main import validate_int_fields, is_ip, is_unset
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_ip, is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Service(BaseModule):
     FIELD_ID = 'name'
     CMDS = {
-        'add': 'addService',
-        'del': 'delService',
-        'set': 'setService',
+        'add': 'add_service',
+        'del': 'del_service',
+        'set': 'set_service',
         'search': 'get',
-        'toggle': 'toggleService',
+        'toggle': 'toggle_service',
     }
     API_KEY_PATH = 'monit.service'
     API_MOD = 'monit'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'type', 'pidfile', 'match', 'path', 'service_timeout', 'address', 'interface',
         'start', 'stop', 'tests', 'depends', 'polltime', 'description',
@@ -39,26 +43,24 @@ class Service(BaseModule):
         'existing_tests': 'monit.test',
     }
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.service = {}
         self.existing_tests = None
 
     def check(self) -> None:
         if self.p['state'] == 'present':
-            validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
-
             if is_unset(self.p['type']):
-                self.m.fail("You need to provide a 'type' to create a service!")
+                self.m.fail_json("You need to provide a 'type' to create a service!")
 
             elif self.p['type'] == 'network' and is_unset(self.p['interface']) and is_unset(self.p['address']):
-                self.m.fail(
+                self.m.fail_json(
                     "You need to provide either an 'interface' or 'address' "
                     "to create a network service!"
                 )
 
             elif self.p['type'] == 'host' and is_unset(self.p['address']):
-                self.m.fail(
+                self.m.fail_json(
                     "You need to provide an 'address' to create "
                     "a remote-host service!"
                 )
@@ -79,4 +81,5 @@ class Service(BaseModule):
                 field='depends',
                 existing=self.existing_entries,
             )
-            self.r['diff']['after'] = self.b.build_diff(data=self.p)
+
+        self._base_check()

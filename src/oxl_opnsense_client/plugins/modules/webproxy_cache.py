@@ -1,17 +1,33 @@
-from ..module_input import validate_input, ModuleInput, valid_results
-from ..module_utils.helper.wrapper import module_wrapper
-from ..module_utils.defaults.main import RELOAD_MOD_ARG
-from ..module_utils.main.webproxy_cache import Cache
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
+# Copyright: (C) 2025, Pascal Rath <contact+opnsense@OXL.at>
+# GNU General Public License v3.0+ (see https://www.gnu.org/licenses/gpl-3.0.txt)
+
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+    module_dependency_error, MODULE_EXCEPTIONS
+
+try:
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.wrapper import module_wrapper
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+        OPN_MOD_ARGS, RELOAD_MOD_ARG
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.webproxy_cache import Cache
+
+except MODULE_EXCEPTIONS:
+    module_dependency_error()
+
+
+# DOCUMENTATION = 'https://ansible-opnsense.oxl.app/modules/webproxy.html'
+# EXAMPLES = 'https://ansible-opnsense.oxl.app/modules/webproxy.html'
 
 BLANK_VALUES = {
     'memory_cache_mode': 'default',
 }
 
 
-def run_module(module_input: ModuleInput, result: dict = None) -> dict:
-    result = valid_results(result)
-
+def run_module():
     module_args = dict(
         memory_mb=dict(
             type='int', required=False, default=256, aliases=['memory', 'mem'],
@@ -25,13 +41,19 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
             type='str', required=False, default='/var/squid/cache', aliases=['dir'],
             description='The location for the local cache'
         ),
-        layer_1=dict(
-            type='int', required=False, default=16, aliases=['layer1', 'l1'],
-            description='The number of first-level subdirectories for the local cache'
+        slot_size=dict(
+            type='int', required=False, default=16384,
+            description='Defines the size of a database record used to store cached responses. '
+                        'Value should be a multiple of the OS I/O page size.'
         ),
-        layer_2=dict(
-            type='int', required=False, default=256, aliases=['layer2', 'l2'],
-            description='The number of second-level subdirectories for the local cache'
+        swap_timeout=dict(
+            type='int', required=False, default=0,
+            description='Prevents Squid from reading/writing to disk if the operation exceeds the '
+                        'specified timelimit in milliseconds.'
+        ),
+        max_swap_rate=dict(
+            type='int', required=False, default=0, aliases=['swap_rate'],
+            description='Limits disk access by setting a maximum I/O rate in swaps per second.'
         ),
         size_mb_max=dict(
             type='int', required=False, default=4,
@@ -67,8 +89,33 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
                         'this solution should be preferred'
         ),
         **RELOAD_MOD_ARG,
+        **OPN_MOD_ARGS,
     )
 
-    validate_input(i=module_input, definition=module_args)
-    module_wrapper(Cache(m=module_input, result=result))
-    return result
+    result = dict(
+        changed=False,
+        diff={
+            'before': {},
+            'after': {},
+        }
+    )
+
+    module = AnsibleModule(
+        argument_spec=module_args,
+        supports_check_mode=True,
+    )
+
+    for field, value in BLANK_VALUES.items():
+        if module.params[field] == value:
+            module.params[field] = ''  # BlankDesc
+
+    module_wrapper(Cache(module=module, result=result))
+    module.exit_json(**result)
+
+
+def main():
+    run_module()
+
+
+if __name__ == '__main__':
+    main()

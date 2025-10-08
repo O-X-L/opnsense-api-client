@@ -1,5 +1,10 @@
-from ..helper.main import is_unset
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import \
+    is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Key(BaseModule):
@@ -16,7 +21,6 @@ class Key(BaseModule):
     API_MOD = 'openvpn'
     API_CONT = 'instances'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = ['mode', 'key']
     FIELDS_ALL = [FIELD_ID]
     FIELDS_ALL.extend(FIELDS_CHANGE)
@@ -29,8 +33,8 @@ class Key(BaseModule):
     EXIST_ATTR = 'key'
     FIELDS_DIFF_NO_LOG = ['key']
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.key = {}
 
     def check(self) -> None:

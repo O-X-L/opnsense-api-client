@@ -1,5 +1,12 @@
-from ..base.cls import GeneralModule
-from ..helper.main import get_selected, is_ip_or_network, is_unset, validate_int_fields, get_key_by_value_from_selection
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import GeneralModule
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import \
+    get_selected, get_key_by_value_from_selection
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_ip_or_network, is_unset
 
 
 class General(GeneralModule):
@@ -13,7 +20,6 @@ class General(GeneralModule):
     API_MOD = 'ids'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'block', 'promiscuous', 'enabled', 'interfaces', 'pattern_matcher', 'local_networks', 'default_packet_size',
         'syslog_alerts', 'syslog_output', 'log_level', 'log_rotate', 'log_retention', 'log_payload',
@@ -65,32 +71,28 @@ class General(GeneralModule):
         },
     }
 
-    def __init__(self, m, result: dict):
-        GeneralModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None):
+        GeneralModule.__init__(self=self, m=module, r=result, s=session)
 
     def check(self) -> None:
-        # pylint: disable=W0201
-        validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
-
         if len(self.p['interfaces']) == 0:
-            self.m.fail("You need to supply 'interfaces'!")
+            self.m.fail_json("You need to supply 'interfaces'!")
 
         if self.p['profile'] == 'custom' and (
                 is_unset(self.p['profile_toclient_groups']) or is_unset(self.p['profile_toserver_groups'])
         ):
-            self.m.fail(
+            self.m.fail_json(
                 "You need to supply 'profile_toclient_groups' and 'profile_toserver_groups' "
                 "when using the profile 'custom'!"
             )
 
         for net in self.p['local_networks']:
             if not is_ip_or_network(net):
-                self.m.fail(
+                self.m.fail_json(
                     f"It seems you provided an invalid network in 'local_networks': '{net}'"
                 )
 
-        self.settings = self._search_call()
-        self._build_diff()
+        self._base_check()
 
     def _search_call(self) -> dict:
         settings = self.s.get(cnf={

@@ -1,5 +1,12 @@
-from ..helper.main import validate_int_fields, is_ip, get_selected, is_unset
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import \
+    get_selected
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_ip, is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Domain(BaseModule):
@@ -15,7 +22,6 @@ class Domain(BaseModule):
     API_MOD = 'bind'
     API_CONT = 'domain'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'mode', 'primary', 'transfer_key_algo', 'transfer_key_name', 'transfer_key',
         'allow_notify', 'transfer_acl', 'query_acl', 'ttl', 'refresh', 'retry',
@@ -52,8 +58,8 @@ class Domain(BaseModule):
     EXIST_ATTR = 'domain'
     # FIELDS_DIFF_EXCLUDE = ['serial']
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.domain = {}
         self.existing_acls = None
         self.existing_records = None
@@ -61,12 +67,10 @@ class Domain(BaseModule):
 
     def check(self) -> None:
         if self.p['state'] == 'present':
-            validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
-
             for field in ['allow_notify', 'primary']:
                 for ip in self.p[field]:
                     if not is_ip(ip, ignore_empty=True):
-                        self.m.fail(
+                        self.m.fail_json(
                             f"It seems you provided an invalid IP address as '{field}': '{is_ip}'"
                         )
 
@@ -87,7 +91,7 @@ class Domain(BaseModule):
                 if self.existing_records is not None and len(self.existing_records) > 0:
                     for record in self.existing_records.values():
                         if get_selected(record['domain']) == self.domain['uuid']:
-                            self.m.fail(
+                            self.m.fail_json(
                                 f"Unable to remove domain '{self.domain['name']}' - it has at least "
                                 f"one existing record: '{get_selected(record['type'])}: "
                                 f"{record['name']}.{self.domain['name']}'"
@@ -104,7 +108,7 @@ class Domain(BaseModule):
                     existing=self.existing_acls,
                 )
 
-            self.r['diff']['after'] = self.b.build_diff(data=self.p)
+        self._base_check()
 
     def _search_acls(self) -> None:
         self.existing_acls = self.s.get(cnf={

@@ -1,91 +1,71 @@
 from re import match as regex_match
 from typing import Callable
 
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+    BUILTIN_ALIASES, BUILTIN_INTERFACE_ALIASES_REG
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_valid_partial_mac_address, is_valid_url, validate_port_or_range, is_valid_network, is_valid_host, is_ip
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import is_unset
 
-from ..defaults.main import BUILTIN_ALIASES, BUILTIN_INTERFACE_ALIASES_REG
-from .validate import is_valid_mac_address, is_valid_url
 
-
-def validate_values(cnf: dict, error_func: Callable) -> None:
+# This should be kept aligned with getValidators from the AliasContentField
+# https://github.com/opnsense/core/blob/master/src/opnsense/mvc/app/models/OPNsense/Firewall/FieldTypes/AliasContentField.php
+def validate_values(cnf: dict, error_func: Callable, existing_entries: dict) -> None:
     v_type = cnf['type']
 
+    if isinstance(existing_entries, dict):
+        existing_entries = [
+            a['name']
+            for a in existing_entries.values()
+        ]
+
+    else:
+        existing_entries = [
+            a['name']
+            for a in existing_entries
+        ]
+
     for value in cnf['content']:
+        if value in existing_entries:
+            continue
+
         error = f"Value '{value}' is invalid for type '{v_type}'!"
 
         if v_type == 'port':
-            if str(value).find(':') != -1:
-                to_check = value.split(':')
+            validate_port_or_range(module=None, port=value, error_func=error_func, range_sep=':')
 
-            else:
-                to_check = [value]
+        elif v_type == 'host' and not is_valid_host(value):
+            error_func(error)
 
-            for _value in to_check:
-                try:
-                    if int(_value) < 1 or int(_value) > 65535:
-                        error_func(error)
+        #elif v_type == 'geoip':
+        #    pass
 
-                except ValueError:
+        elif v_type == 'network' and not is_valid_network(value):
+            error_func(error)
+
+        elif v_type == 'networkgroup':
+            error_func(f"Value '{value}' is not a valid alias!")
+
+        elif v_type == 'mac' and not is_valid_partial_mac_address(value):
+            error_func(error)
+
+        elif v_type == 'dynipv6host' and not is_ip(f"0000{value}"):
+            error_func(error)
+
+        elif v_type == 'asn':
+            try:
+                if int(value) < 1 or int(value) > 4294967296:
                     error_func(error)
 
-        elif v_type == 'mac':
-            # todo: support for partial mac addresses?
-            if not is_valid_mac_address(value):
+            except ValueError:
                 error_func(error)
 
-        elif v_type in ['url', 'urltable']:
-            if not is_valid_url(value):
-                error_func(error)
+        #elif v_type == 'authgroup':
+        #    pass
 
-        # unable to check because of alias-nesting support
-        # if v_type == 'network':
-        #     value = value[1:] if value.startswith('!') else value
-        #
-        #     try:
-        #         ip_network(value)
-        #
-        #     except ValueError:
-        #         error_func(error)
-
-        # unable to check because of alias-nesting support and ip-ranges
-        # if v_type == 'host':
-        #     try:
-        #         ip_address(value)
-        #
-        #     except ValueError:
-        #         if not is_valid_domain(value):
-        #             error_func(error)
-
-
-def check_purge_filter(m, existing_rule: dict) -> bool:
-    # used for 'alias_multi' and 'rule_multi'
-    to_purge = True
-
-    for filter_key, filter_value in m.params['filters'].items():
-        if m.params['filter_invert']:
-            # purge all except matches
-            if m.params['filter_partial']:
-                if str(existing_rule[filter_key]).find(filter_value) != -1:
-                    to_purge = False
-                    break
-
-            else:
-                if existing_rule[filter_key] == filter_value:
-                    to_purge = False
-                    break
-
-        else:
-            # purge only matches
-            if m.params['filter_partial']:
-                if str(existing_rule[filter_key]).find(filter_value) == -1:
-                    to_purge = False
-                    break
-
-            else:
-                if existing_rule[filter_key] != filter_value:
-                    to_purge = False
-                    break
-
-    return to_purge
+        # OPNsense has no validation for urls in the API
+        elif v_type in ['url', 'urltable', 'urljson'] and not is_valid_url(value):
+            error_func(error)
 
 
 def compare_aliases(existing: dict, configured: dict) -> tuple:
@@ -94,18 +74,6 @@ def compare_aliases(existing: dict, configured: dict) -> tuple:
     before.sort()
     after.sort()
     return before != after, before, after
-
-
-def check_purge_configured(m, existing_alias: dict) -> bool:
-    to_purge = True
-    existing_name = existing_alias['name']
-
-    for alias_name in m.params['aliases'].keys():
-        if existing_name == alias_name:
-            to_purge = False
-            break
-
-    return to_purge
 
 
 def builtin_alias(name: str) -> bool:
@@ -123,3 +91,21 @@ def filter_builtin_alias(aliases: list) -> list:
             filtered.append(alias)
 
     return filtered
+
+
+DEFAULT_UPDATEFREQ_DAYS_URLTABLE = 7  # see: https://github.com/O-X-L/ansible-opnsense/pull/270
+
+
+def build_updatefreq(updatefreq: (int, float, str), default: bool = False) -> (int, float):
+    if is_unset(updatefreq):
+        if default:
+            return DEFAULT_UPDATEFREQ_DAYS_URLTABLE
+
+        return updatefreq
+
+    updatefreq = float(updatefreq)
+    dec = 1
+    if str(updatefreq).endswith('.0'):
+        dec = None
+
+    return round(updatefreq, dec)

@@ -1,5 +1,10 @@
-from ..helper.main import is_unset, get_key_by_value_beg_from_selection
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import \
+    is_unset, get_key_by_value_beg_from_selection
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Override(BaseModule):
@@ -16,7 +21,6 @@ class Override(BaseModule):
     API_MOD = 'openvpn'
     API_CONT = 'client_overwrites'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'servers', 'description', 'block', 'push_reset', 'network_tunnel_ip4', 'network_tunnel_ip6',
         'network_local', 'network_remote', 'route_gateway', 'redirect_gateway', 'register_dns',
@@ -42,8 +46,8 @@ class Override(BaseModule):
     }
     EXIST_ATTR = 'override'
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.override = {}
 
     def check(self) -> None:
@@ -62,6 +66,3 @@ class Override(BaseModule):
                 ))
 
             self.p['servers'] = servers
-
-        if self.p['state'] == 'present':
-            self.r['diff']['after'] = self.b.build_diff(data=self.p)

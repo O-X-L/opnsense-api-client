@@ -1,24 +1,28 @@
-from ..base.cls import BaseModule
-from ..main.ids_ruleset import Ruleset
-from ..helper.main import is_unset, is_true, ensure_list
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.ids_ruleset import Ruleset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_unset, is_true, ensure_list
 
 
 class Policy(BaseModule):
     FIELD_ID = 'description'
     CMDS = {
-        'add': 'addPolicy',
-        'del': 'delPolicy',
-        'set': 'setPolicy',
-        'search': 'searchPolicy',
-        'detail': 'getPolicy',
-        'toggle': 'togglePolicy',
+        'add': 'add_policy',
+        'del': 'del_policy',
+        'set': 'set_policy',
+        'search': 'search_policy',
+        'detail': 'get_policy',
+        'toggle': 'toggle_policy',
     }
     API_KEY = 'policy'
     API_KEY_PATH = f'policies.{API_KEY}'
     API_MOD = 'ids'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = ['priority', 'action', 'rulesets', 'new_action']
     FIELDS_ALL = ['enabled', FIELD_ID]
     FIELDS_ALL.extend(FIELDS_CHANGE)
@@ -34,12 +38,11 @@ class Policy(BaseModule):
         'list': ['rulesets', 'action'],
         'int': ['priority'],
     }
-    FIELDS_IGNORE = ['content']
     EXIST_ATTR = 'policy'
     QUERY_MAX_RULES = 5000
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.policy = {}
         self.exists = False
         self.enabled_rulesets = {}
@@ -52,7 +55,7 @@ class Policy(BaseModule):
                 self._search_rulesets()
 
             if len(self.enabled_rulesets) == 0:
-                self.m.fail("You need to enable rulesets before referencing them!")
+                self.m.fail_json("You need to enable rulesets before referencing them!")
 
             ruleset_uuids = []
             for ruleset in self.p['rulesets']:
@@ -63,7 +66,7 @@ class Policy(BaseModule):
                         ruleset_uuids.append(uuid)
 
                 if not found:
-                    self.m.fail(
+                    self.m.fail_json(
                         f"The ruleset '{ruleset}' was not found! "
                         "You need to enable a ruleset before referencing it. "
                         f"Enabled ones are: {list(self.enabled_rulesets.keys())}"

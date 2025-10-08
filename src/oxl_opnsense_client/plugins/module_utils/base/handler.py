@@ -1,4 +1,9 @@
-from ....exceptions import ModuleFailure
+try:
+    from ansible.module_utils.common.errors import AnsibleModuleError
+
+except ModuleNotFoundError:
+    class AnsibleModuleError(Exception):
+        pass
 
 MODULE_EXCEPTIONS = (ModuleNotFoundError, ImportError)
 
@@ -7,20 +12,24 @@ class ModuleSoftError(Exception):
     pass
 
 
+class ModuleValidationError(ModuleSoftError):
+    pass
+
+
 def exit_bug(msg: str):
-    raise ModuleFailure(f"THIS MIGHT BE A MODULE-BUG: {msg}")
+    raise AnsibleModuleError(f"THIS MIGHT BE A MODULE-BUG: {msg}")
 
 
 def exit_debug(msg: str):
-    raise ModuleFailure(f"DEBUG INFO: {msg}")
+    raise AnsibleModuleError(f"DEBUG INFO: {msg}")
 
 
 def exit_env(msg: str):
-    raise ModuleFailure(f"ENVIRONMENTAL ERROR: {msg}")
+    raise AnsibleModuleError(f"ENVIRONMENTAL ERROR: {msg}")
 
 
 def exit_cnf(msg: str):
-    raise ModuleFailure(f"CONFIG ERROR: {msg}")
+    raise AnsibleModuleError(f"CONFIG ERROR: {msg}")
 
 
 def module_dependency_error() -> None:

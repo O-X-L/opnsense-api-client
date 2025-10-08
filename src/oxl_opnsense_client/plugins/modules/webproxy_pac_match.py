@@ -1,7 +1,26 @@
-from ..module_input import validate_input, ModuleInput, valid_results
-from ..module_utils.helper.wrapper import module_wrapper
-from ..module_utils.defaults.main import STATE_ONLY_MOD_ARG, RELOAD_MOD_ARG
-from ..module_utils.main.webproxy_pac_match import Match
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# Copyright: (C) 2025, Pascal Rath <contact+opnsense@OXL.at>
+# GNU General Public License v3.0+ (see https://www.gnu.org/licenses/gpl-3.0.txt)
+
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+    module_dependency_error, MODULE_EXCEPTIONS
+
+try:
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.wrapper import module_wrapper
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+        OPN_MOD_ARGS, RELOAD_MOD_ARG, STATE_ONLY_MOD_ARG
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.webproxy_pac_match import Match
+
+except MODULE_EXCEPTIONS:
+    module_dependency_error()
+
+
+# DOCUMENTATION = 'https://ansible-opnsense.oxl.app/modules/webproxy.html'
+# EXAMPLES = 'https://ansible-opnsense.oxl.app/modules/webproxy.html'
 
 MONTH_MAPPING = {
     1: 'JAN',
@@ -29,10 +48,7 @@ WEEKDAY_MAPPING = {
 }
 
 
-def run_module(module_input: ModuleInput, result: dict = None) -> dict:
-    m = module_input
-    result = valid_results(result)
-
+def run_module():
     module_args = dict(
         name=dict(
             type='str', required=True, description='Unique name for the match',
@@ -104,16 +120,35 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
         ),
         **RELOAD_MOD_ARG,
         **STATE_ONLY_MOD_ARG,
+        **OPN_MOD_ARGS,
     )
 
-    validate_input(i=module_input, definition=module_args)
+    result = dict(
+        changed=False,
+        diff={
+            'before': {},
+            'after': {},
+        }
+    )
+
+    module = AnsibleModule(
+        argument_spec=module_args,
+        supports_check_mode=True,
+    )
 
     for day_field in ['weekday_from', 'weekday_to']:
-        m.params[day_field] = WEEKDAY_MAPPING[m.params[day_field]]
+        module.params[day_field] = WEEKDAY_MAPPING[module.params[day_field]]
 
     for month_field in ['month_from', 'month_to']:
-        m.params[month_field] = MONTH_MAPPING[m.params[month_field]]
+        module.params[month_field] = MONTH_MAPPING[module.params[month_field]]
+
+    module_wrapper(Match(module=module, result=result))
+    module.exit_json(**result)
 
 
-    module_wrapper(Match(m=module_input, result=result))
-    return result
+def main():
+    run_module()
+
+
+if __name__ == '__main__':
+    main()

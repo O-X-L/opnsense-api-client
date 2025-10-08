@@ -1,12 +1,31 @@
-from ..module_input import validate_input, ModuleInput, valid_results
-from ..module_utils.helper.wrapper import module_wrapper
-from ..module_utils.defaults.main import RELOAD_MOD_ARG_DEF_FALSE, STATE_ONLY_MOD_ARG
-from ..module_utils.main.ipsec_psk import PreSharedKey
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# Copyright: (C) 2025, Pascal Rath <contact+opnsense@OXL.at>
+# GNU General Public License v3.0+ (see https://www.gnu.org/licenses/gpl-3.0.txt)
+
+# see: https://docs.opnsense.org/development/api/core/ipsec.html
+
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+    module_dependency_error, MODULE_EXCEPTIONS
+
+try:
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.wrapper import module_wrapper
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.ipsec_psk import PreSharedKey
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+        OPN_MOD_ARGS, STATE_ONLY_MOD_ARG, RELOAD_MOD_ARG_DEF_FALSE
+
+except MODULE_EXCEPTIONS:
+    module_dependency_error()
 
 
-def run_module(module_input: ModuleInput, result: dict = None) -> dict:
-    result = valid_results(result)
+# DOCUMENTATION = 'https://ansible-opnsense.oxl.app/modules/ipsec.html'
+# EXAMPLES = 'https://ansible-opnsense.oxl.app/modules/ipsec.html'
 
+
+def run_module():
     module_args = dict(
         identity_local=dict(
             type='str', required=True, aliases=['identity', 'ident'],
@@ -21,10 +40,38 @@ def run_module(module_input: ModuleInput, result: dict = None) -> dict:
         type=dict(
             type='str', required=False, choices=['PSK', 'EAP'], default='PSK', aliases=['kind'],
         ),
+        match_fields=dict(
+            type='list', required=False, elements='str',
+            description='Fields that are used to match configured PSK with the running config - '
+                        "if any of those fields are changed, the module will think it's a new entry",
+            choices=['identity_local', 'identity_remote'],
+            default=['identity_local'],
+        ),
         **RELOAD_MOD_ARG_DEF_FALSE,
         **STATE_ONLY_MOD_ARG,
+        **OPN_MOD_ARGS,
     )
 
-    validate_input(i=module_input, definition=module_args)
-    module_wrapper(PreSharedKey(m=module_input, result=result))
-    return result
+    result = dict(
+        changed=False,
+        diff={
+            'before': {},
+            'after': {},
+        }
+    )
+
+    module = AnsibleModule(
+        argument_spec=module_args,
+        supports_check_mode=True,
+    )
+
+    module_wrapper(PreSharedKey(module=module, result=result))
+    module.exit_json(**result)
+
+
+def main():
+    run_module()
+
+
+if __name__ == '__main__':
+    main()

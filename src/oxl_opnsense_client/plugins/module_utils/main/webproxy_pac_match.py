@@ -1,5 +1,9 @@
-from ..base.cls import BaseModule
-from ..helper.main import is_unset
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import is_unset
 
 
 class Match(BaseModule):
@@ -14,7 +18,6 @@ class Match(BaseModule):
     API_MOD = 'proxy'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'negate', 'url', 'description', 'type', 'hostname', 'network',
         'domain_level_from', 'domain_level_to', 'hour_from', 'hour_to',
@@ -43,8 +46,8 @@ class Match(BaseModule):
     }
     EXIST_ATTR = 'proxy'
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.proxy = {}
 
     def check(self) -> None:

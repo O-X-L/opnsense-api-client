@@ -1,4 +1,8 @@
-from ..base.cls import GeneralModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import GeneralModule
 
 
 class General(GeneralModule):
@@ -11,7 +15,6 @@ class General(GeneralModule):
     API_MOD = 'proxy'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = ['method', 'group', 'prompt', 'ttl_h', 'processes']
     FIELDS_ALL = FIELDS_CHANGE
     FIELDS_TRANSLATE = {
@@ -28,5 +31,5 @@ class General(GeneralModule):
         'prompt': {'min': 0, 'max': 255}
     }
 
-    def __init__(self, m, result: dict):
-        GeneralModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None):
+        GeneralModule.__init__(self=self, m=module, r=result, s=session)

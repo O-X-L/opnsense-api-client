@@ -1,21 +1,25 @@
-from ..helper.main import is_unset
-from ..helper.unbound import validate_domain
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.unbound import \
+    validate_domain
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Alias(BaseModule):
     CMDS = {
-        'add': 'addHostAlias',
-        'del': 'delHostAlias',
-        'set': 'setHostAlias',
+        'add': 'add_host_alias',
+        'del': 'del_host_alias',
+        'set': 'set_host_alias',
         'search': 'get',
-        'toggle': 'toggleHostAlias',
+        'toggle': 'toggle_host_alias',
     }
     API_KEY_PATH = 'unbound.aliases.alias'
     API_MOD = 'unbound'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = ['target', 'domain', 'alias',  'description']
     FIELDS_ALL = ['enabled']
     FIELDS_ALL.extend(FIELDS_CHANGE)
@@ -32,8 +36,8 @@ class Alias(BaseModule):
         'existing_hosts': 'unbound.hosts.host',
     }
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.alias = {}
         self.existing_hosts = None
         self.target_found = False
@@ -45,7 +49,7 @@ class Alias(BaseModule):
                     "You need to provide a 'target' if you want to create a host-alias!"
                 )
 
-            validate_domain(m=self.m, domain=self.p['domain'])
+            validate_domain(module=self.m, domain=self.p['domain'])
 
         self.b.find(match_fields=self.p['match_fields'])
 
@@ -55,7 +59,7 @@ class Alias(BaseModule):
             if not self.target_found:
                 self.m.fail_json(f"Alias-target '{self.p['target']}' was not found!")
 
-            self.r['diff']['after'] = self.b.build_diff(data=self.p)
+        self._base_check()
 
     def _find_target(self) -> None:
         if len(self.existing_hosts) > 0:

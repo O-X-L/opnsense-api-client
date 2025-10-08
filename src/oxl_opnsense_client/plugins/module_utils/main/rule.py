@@ -1,53 +1,89 @@
-from ..base.handler import ModuleSoftError
-from ..helper.main import validate_int_fields
-from ..helper.rule import validate_values
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+    ModuleSoftError
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    validate_int_fields
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.rule import \
+    validate_values
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Rule(BaseModule):
+    MULTI_DIFF_KEY = 'description'
     CMDS = {
-        'add': 'addRule',
-        'del': 'delRule',
-        'set': 'setRule',
+        'add': 'add_rule',
+        'del': 'del_rule',
+        'set': 'set_rule',
         'search': 'get',
-        'toggle': 'toggleRule',
+        'toggle': 'toggle_rule',
     }
     API_KEY_PATH = 'filter.rules.rule'
     API_MOD = 'firewall'
     API_CONT = 'filter'
     FIELDS_CHANGE = [
-        'sequence', 'action', 'quick', 'interface', 'direction',
+        'sequence', 'action', 'quick', 'interface', 'interface_invert', 'direction',
         'ip_protocol', 'protocol', 'source_invert', 'source_net', 'source_port',
         'destination_invert', 'destination_net', 'destination_port', 'log',
-        'description', 'gateway',
+        'tag', 'tagged', 'description', 'gateway', 'replyto', 'disable_replyto',
+        'allow_opts', 'state_type', 'state_policy', 'state_timeout',
+        'max_states', 'max_src_nodes', 'max_src_states', 'max_src_conn', 'max_src_conn_rate',
+        'max_src_conn_rates', 'overload', 'adaptive_start', 'adaptive_end', 'prio', 'set_prio', 'set_prio_low',
+        'tcp_flags', 'tcp_flags_clear', 'schedule', 'tos', 'icmp_type',
     ]
     FIELDS_ALL = ['enabled']
     FIELDS_ALL.extend(FIELDS_CHANGE)
     FIELDS_TRANSLATE = {
+        'interface_invert': 'interfacenot',
         'ip_protocol': 'ipprotocol',
         'source_invert': 'source_not',
         'destination_invert': 'destination_not',
+        'disable_replyto': 'disablereplyto',
+        'allow_opts': 'allowopts',
+        'state_type': 'statetype',
+        'state_policy': 'state-policy',
+        'state_timeout': 'statetimeout',
+        'max_states': 'max',
+        'max_src_nodes': 'max-src-nodes',
+        'max_src_states': 'max-src-states',
+        'max_src_conn': 'max-src-conn',
+        'max_src_conn_rate': 'max-src-conn-rate',
+        'max_src_conn_rates': 'max-src-conn-rates',
+        'adaptive_start': 'adaptivestart',
+        'adaptive_end': 'adaptiveend',
+        'set_prio': 'set-prio',
+        'set_prio_low': 'set-prio-low',
+        'tcp_flags': 'tcpflags1',
+        'tcp_flags_clear': 'tcpflags2',
+        'schedule': 'sched',
+        'icmp_type': 'icmptype',
     }
     FIELDS_TYPING = {
-        'bool': ['enabled', 'log', 'quick', 'source_invert', 'destination_invert'],
-        'select': ['action', 'direction', 'ip_protocol', 'protocol', 'gateway'],
-        'list': ['interface'],
+        'bool': [
+            'enabled', 'log', 'quick', 'interface_invert', 'source_invert', 'destination_invert', 'disable_replyto',
+            'allow_opts',
+        ],
+        'select': [
+            'action', 'direction', 'ip_protocol', 'protocol', 'gateway', 'replyto', 'state_type', 'state_policy',
+            'overload', 'prio', 'set_prio', 'set_prio_low', 'schedule', 'tos',
+        ],
+        'list': ['interface', 'tcp_flags', 'tcp_flags_clear', 'icmp_type'],
+        'int': ['sequence', 'state_timeout'],
     }
     EXIST_ATTR = 'rule'
     TIMEOUT = 60.0  # urltable etc reload
     INT_VALIDATIONS = {
         'sequence': {'min': 1, 'max': 99999},
+        'state_timeout': {'min': 1},
     }
     API_CMD_REL = 'apply'
 
     def __init__(
-            self, m, result: dict, cnf: dict = None,
-            fail_verify: bool = True, fail_proc: bool = True
+            self, module: AnsibleModule, result: dict, multi: dict = None,
+            session: Session = None, fail: dict = None,
     ):
-        BaseModule.__init__(self=self, m=m, r=result)
-        self.p = self.m.params if cnf is None else cnf  # to allow override by rule_multi
-        self.fail_verify = fail_verify
-        self.fail_proc = fail_proc
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail, multi=multi)
         self.rule = {}
         self.log_name = None
 
@@ -73,7 +109,7 @@ class Rule(BaseModule):
     def check(self) -> None:
         if self.p['state'] == 'present':
             validate_int_fields(
-                m=self.m,
+                module=self.m,
                 data=self.p,
                 field_minmax=self.INT_VALIDATIONS,
                 error_func=self._error
@@ -83,16 +119,13 @@ class Rule(BaseModule):
         self.b.find(match_fields=self.p['match_fields'])
 
         if self.p['state'] == 'present':
-            validate_values(
-                error_func=self._error,
-                m=self.m,
-                cnf=self.p
-            )
-            self.r['diff']['after'] = self.b.build_diff(data=self.p)
+            validate_values(module=self.m, cnf=self.p, error_func=self._error)
+
+        self._base_check()
 
     def _error(self, msg: str, verification: bool = True) -> None:
-        if (verification and self.fail_verify) or (not verification and self.fail_proc):
-            self.m.fail(msg)
+        if (verification and self.fail_verify) or (not verification and self.fail_process):
+            self.m.fail_json(msg)
 
         else:
             self.m.warn(msg)

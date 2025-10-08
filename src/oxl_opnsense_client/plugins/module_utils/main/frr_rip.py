@@ -1,4 +1,8 @@
-from ..base.cls import GeneralModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import GeneralModule
 
 
 class Rip(GeneralModule):
@@ -10,7 +14,6 @@ class Rip(GeneralModule):
     API_MOD = 'quagga'
     API_CONT = 'rip'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'version', 'metric', 'passive_ints', 'enabled', 'networks',
         'redistribute',
@@ -30,5 +33,5 @@ class Rip(GeneralModule):
         'metric': {'min': 1, 'max': 16},
     }
 
-    def __init__(self, m, result: dict):
-        GeneralModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None):
+        GeneralModule.__init__(self=self, m=module, r=result, s=session)

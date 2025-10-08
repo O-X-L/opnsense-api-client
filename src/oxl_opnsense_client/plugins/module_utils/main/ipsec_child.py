@@ -1,5 +1,10 @@
-from ..helper.main import validate_int_fields, is_unset
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Child(BaseModule):
@@ -15,7 +20,6 @@ class Child(BaseModule):
     API_MOD = 'ipsec'
     API_CONT = 'connections'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'connection', 'request_id', 'esp_proposals', 'sha256_96', 'start_action',
         'close_action', 'dpd_action', 'mode', 'policies', 'local_net', 'remote_net',
@@ -45,18 +49,16 @@ class Child(BaseModule):
         'existing_conns': 'swanctl.Connections.Connection',
     }
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.child = {}
         self.existing_conns = None
 
     def check(self) -> None:
         if self.p['state'] == 'present':
-            validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
-
             for field in ['connection', 'local_net', 'remote_net']:
                 if is_unset(self.p[field]):
-                    self.m.fail(
+                    self.m.fail_json(
                         f"You need to provide a '{field}' to create an IPSec child!"
                     )
 

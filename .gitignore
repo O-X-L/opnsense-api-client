@@ -4,3 +4,5 @@ venv/
 src/oxl_opnsense_client.egg-info
 test.sh
 src/tests/integration/OPNsense.pem
+build/
+.venv/

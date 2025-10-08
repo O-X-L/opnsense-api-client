@@ -1,14 +1,19 @@
-from ..base.cls import BaseModule
-from ..helper.main import is_true, to_digit
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import \
+    is_true, to_digit
 
 
 class Ruleset(BaseModule):
     FIELD_PK = 'filename'
     FIELD_ID = 'description'
     CMDS = {
-        'set': 'setRuleset',
-        'search': 'listRulesets',
-        'toggle': 'toggleRuleset',
+        'set': 'set_ruleset',
+        'search': 'list_rulesets',
+        'toggle': 'toggle_ruleset',
     }
     API_KEY_PATH = 'rulesets.ruleset'
     API_MOD = 'ids'
@@ -26,8 +31,8 @@ class Ruleset(BaseModule):
     EXIST_ATTR = 'ruleset'
     QUERY_MAX_RULES = 1000
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.ruleset = {}
         self.exists = False
         self.existing_rulesets_desc = []
@@ -35,7 +40,7 @@ class Ruleset(BaseModule):
     def check(self) -> None:
         self._search_call()
         if not self.exists:
-            self.m.fail(
+            self.m.fail_json(
                 f"The provided ruleset '{self.p[self.FIELD_ID]}' was not found! "
                 f"Available ones are: '{self.existing_rulesets_desc}'"
             )

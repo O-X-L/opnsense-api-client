@@ -1,25 +1,28 @@
-from ..helper.main import validate_int_fields, validate_str_fields, is_ip, validate_port, is_ip_or_network, \
-    is_unset
-from ..main.wireguard_peer import Peer
-from ..base.cls import BaseModule
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_ip, is_ip_or_network, is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.wireguard_peer import Peer
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
 
 
 class Server(BaseModule):
     FIELD_ID = 'name'
     CMDS = {
-        'add': 'addServer',
-        'del': 'delServer',
-        'set': 'setServer',
+        'add': 'add_server',
+        'del': 'del_server',
+        'set': 'set_server',
         'search': 'get',
-        'detail': 'getServer',
-        'toggle': 'toggleserver',
+        'detail': 'get_server',
+        'toggle': 'toggle_server',
     }
     API_KEY = 'server'
     API_KEY_PATH = f'server.servers.{API_KEY}'
     API_MOD = 'wireguard'
     API_CONT = 'server'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = [
         'public_key', 'private_key', 'port', 'mtu', 'dns_servers', 'allowed_ips',
         'disable_routes', 'gateway', 'peers', 'vip',
@@ -43,27 +46,22 @@ class Server(BaseModule):
     FIELDS_DIFF_NO_LOG = ['private_key']
     INT_VALIDATIONS = {
         'mtu': {'min': 1, 'max': 9300},
+        'port': {'min': 1, 'max': 65535},
     }
     STR_VALIDATIONS = {
         'name': r'^([0-9a-zA-Z._\-]){1,64}$'
     }
     EXIST_ATTR = 'server'
+    FIELDS_DIFF_EXCLUDE = []
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.server = {}
         self.existing_peers = None
         self.existing_vips = {}
 
     def check(self) -> None:
         if self.p['state'] == 'present':
-            validate_port(m=self.m, port=self.p['port'])
-            validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
-            validate_str_fields(
-                m=self.m, data=self.p,
-                field_regex=self.STR_VALIDATIONS,
-            )
-
             if is_unset(self.p['allowed_ips']):
                 self.m.fail_json(
                     "You need to provide at least one 'allowed_ips' entry "
@@ -79,6 +77,11 @@ class Server(BaseModule):
                 self.m.fail_json(
                     "You need to provide a 'public_key' and 'private_key'!"
                 )
+
+        link_peers = not is_unset(self.p['peers']) or self.p['link_peers']
+        if not link_peers:
+            self.FIELDS_CHANGE.remove('peers')
+            self.FIELDS_DIFF_EXCLUDE.append('peers')
 
         for entry in self.p['allowed_ips']:
             if not is_ip_or_network(entry):
@@ -98,32 +101,38 @@ class Server(BaseModule):
                 self.p['private_key'] = self.server['private_key']
 
         if self.p['state'] == 'present':
-            self.p['peers'] = self._find_peers()
+            if link_peers:
+                self.p['peers'] = self._find_peers()
+
             if not is_unset(self.p['vip']):
                 self.p['vip'] = self._find_vip()
 
-            self.r['diff']['after'] = self.b.build_diff(data=self.p)
+        self._base_check()
 
     def _find_peers(self) -> list:
         peers = []
         existing = {}
 
         if self.existing_peers is None:
-            self.existing_peers = Peer( m=self.m, result={}).get_existing()
+            self.existing_peers = Peer(
+                module=self.m, result={}, session=self.s
+            ).get_existing()
 
-        if len(self.p['peers']) > 0:
-            for peer in self.existing_peers:
-                existing[peer['name']] = peer['uuid']
+        if len(self.p['peers']) == 0:
+            return []
 
-            for peer in self.p['peers']:
-                if peer not in existing and peer not in existing.values():
-                    self.m.fail_json(f"Peer '{peer}' does not exist!")
+        for peer in self.existing_peers:
+            existing[peer['name']] = peer['uuid']
 
-                if peer in existing:
-                    peers.append(existing[peer])
+        for peer in self.p['peers']:
+            if peer not in existing and peer not in existing.values():
+                self.m.fail_json(f"Peer '{peer}' does not exist!")
 
-                else:
-                    peers.append(peer)
+            if peer in existing:
+                peers.append(existing[peer])
+
+            else:
+                peers.append(peer)
 
         return peers
 

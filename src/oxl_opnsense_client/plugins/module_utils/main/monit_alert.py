@@ -1,21 +1,24 @@
-from ..helper.main import validate_int_fields
-from ..base.cls import BaseModule
-from ..helper.validate import is_valid_email
+from ansible.module_utils.basic import AnsibleModule
+
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+    Session
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+    is_valid_email
 
 
 class Alert(BaseModule):
     CMDS = {
-        'add': 'addAlert',
-        'del': 'delAlert',
-        'set': 'setAlert',
+        'add': 'add_alert',
+        'del': 'del_alert',
+        'set': 'set_alert',
         'search': 'get',
-        'toggle': 'toggleAlert',
+        'toggle': 'toggle_alert',
     }
     API_KEY_PATH = 'monit.alert'
     API_MOD = 'monit'
     API_CONT = 'settings'
     API_CONT_REL = 'service'
-    API_CMD_REL = 'reconfigure'
     FIELDS_CHANGE = ['recipient', 'not_on', 'events', 'format', 'reminder', 'description']
     FIELDS_ALL = ['enabled']
     FIELDS_ALL.extend(FIELDS_CHANGE)
@@ -32,16 +35,14 @@ class Alert(BaseModule):
     }
     EXIST_ATTR = 'alert'
 
-    def __init__(self, m, result: dict):
-        BaseModule.__init__(self=self, m=m, r=result)
+    def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
+        BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.alert = {}
 
     def check(self) -> None:
         if self.p['state'] == 'present':
-            validate_int_fields(m=self.m, data=self.p, field_minmax=self.INT_VALIDATIONS)
-
             if not is_valid_email(self.p['recipient']):
-                self.m.fail(
+                self.m.fail_json(
                     f"The recipient value '{self.p['recipient']}' is not a "
                     f"valid email address!"
                 )
