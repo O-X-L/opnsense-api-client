@@ -2,7 +2,7 @@ from datetime import datetime
 
 # pylint: disable=W0622
 
-project = 'Ansible Collection - OPNsense'
+project = 'Python API Client - OPNsense'
 author = 'OXL IT Services'
 copyright = f'{datetime.now().year}, {author}'
 extensions = ['sphinx_immaterial', 'myst_parser']
@@ -93,5 +93,5 @@ html_theme_options = {
         },
     ],
 }
-html_title = 'OPNsense Ansible'
-html_short_title = 'OPNsense Ansible Collection (Community)'
+html_title = 'OPNsense Python Client'
+html_short_title = 'OPNsense Python API Client (Community)'
