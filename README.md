@@ -30,7 +30,7 @@ pip install oxl-opnsense-client
 Get to know the available modules:
 
 * [Module list](https://github.com/O-X-L/opnsense-api-client/tree/main/src/oxl_opnsense_client/plugins/modules)
-* [Ansible Docs](https://opnsense.ansibleguy.net)
+* [Ansible Docs](https://ansible-opnsense.oxl.app)
 
 ----
 
@@ -48,7 +48,7 @@ Note: Only the [API-enabled](https://docs.opnsense.org/development/api.html) fun
 
 ## Usage
 
-See also: [Ansible OPNSense-Collection Docs](https://opnsense.ansibleguy.net/en/latest/usage/2_basic.html)
+See also: [Ansible OPNSense-Collection Docs](https://ansible-opnsense.oxl.app/en/latest/usage/2_basic.html)
 
 ```python3
 from oxl_opnsense_client import Client
