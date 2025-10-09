@@ -44,7 +44,7 @@ Note: Only the [API-enabled](https://docs.opnsense.org/development/api.html) fun
 
 ## Usage
 
-See also: [Ansible OPNsense-Collection Docs](https://ansible-opnsense.oxl.app/en/latest/usage/2_basic.html)
+[Documentation](https://python-opnsense.oxl.app), [Ansible OPNsense-Collection Docs](https://ansible-opnsense.oxl.app/en/latest/usage/2_basic.html)
 
 ```python3
 from oxl_opnsense_client import Client
