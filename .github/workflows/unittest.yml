@@ -18,7 +18,7 @@ on:
       - 'requirements_test.txt'
       - '.pytest.ini'
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     defaults:

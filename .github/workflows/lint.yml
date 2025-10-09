@@ -22,7 +22,7 @@ on:
       - '.pylintrc'
       - '.yamllint'
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     defaults:
