@@ -12,6 +12,7 @@ on:
       - 'requirements_lint.txt'
       - '.pylintrc'
       - '.yamllint'
+
   pull_request:
     branches: [latest]
     paths:
@@ -21,6 +22,7 @@ on:
       - 'requirements_lint.txt'
       - '.pylintrc'
       - '.yamllint'
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -47,8 +49,12 @@ jobs:
         run: |
           pylint --version
           pylint --rcfile .pylintrc --recursive=y .
+        env:
+          PYTHONUNBUFFERED: 1
 
       - name: Running YamlLint
         run: |
           yamllint --version
           yamllint .
+        env:
+          PYTHONUNBUFFERED: 1
