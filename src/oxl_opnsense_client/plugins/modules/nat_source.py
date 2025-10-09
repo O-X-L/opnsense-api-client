@@ -6,18 +6,18 @@
 
 # see: https://docs.opnsense.org/development/api/plugins/firewall.html
 
-from ansible.module_utils.basic import AnsibleModule
+from basic.ansible import AnsibleModule
 
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+from plugins.module_utils.base.handler import \
     module_dependency_error, MODULE_EXCEPTIONS
 
 try:
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.wrapper import module_wrapper
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.rule import \
+    from plugins.module_utils.base.wrapper import module_wrapper
+    from plugins.module_utils.defaults.rule import \
         RULE_MOD_ARGS
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+    from plugins.module_utils.defaults.main import \
         OPN_MOD_ARGS, STATE_MOD_ARG, RELOAD_MOD_ARG
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.nat_source import SNat
+    from plugins.module_utils.main.nat_source import SNat
 
 except MODULE_EXCEPTIONS:
     module_dependency_error()

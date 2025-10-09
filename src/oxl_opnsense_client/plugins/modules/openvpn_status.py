@@ -4,15 +4,15 @@
 # Copyright: (C) 2025, Pascal Rath <contact+opnsense@OXL.at>
 # GNU General Public License v3.0+ (see https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from ansible.module_utils.basic import AnsibleModule
+from basic.ansible import AnsibleModule
 
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+from plugins.module_utils.base.handler import \
     module_dependency_error, MODULE_EXCEPTIONS
 
 try:
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+    from plugins.module_utils.defaults.main import \
         OPN_MOD_ARGS
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import single_get
+    from plugins.module_utils.base.api import single_get
 
 except MODULE_EXCEPTIONS:
     module_dependency_error()

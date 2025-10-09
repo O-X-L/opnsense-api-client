@@ -2,10 +2,10 @@ from socket import socket, AF_INET, AF_INET6, SOCK_STREAM, gaierror
 from time import time, sleep
 from datetime import datetime
 
-from ansible.module_utils.basic import AnsibleModule
+from basic.ansible import AnsibleModule
 
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import Session, HTTPX_EXCEPTIONS
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import CONNECTION_TEST_TIMEOUT
+from plugins.module_utils.base.api import Session, HTTPX_EXCEPTIONS
+from plugins.module_utils.defaults.main import CONNECTION_TEST_TIMEOUT
 
 
 def _opn_reachable_ipv(module: AnsibleModule, address_family: int) -> bool:

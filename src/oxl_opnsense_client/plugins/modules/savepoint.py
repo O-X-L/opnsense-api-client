@@ -6,14 +6,14 @@
 
 # see: https://docs.opnsense.org/development/api/plugins/firewall.html
 
-from ansible.module_utils.basic import AnsibleModule
+from basic.ansible import AnsibleModule
 
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+from plugins.module_utils.base.handler import \
     module_dependency_error, MODULE_EXCEPTIONS
 
 try:
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import OPN_MOD_ARGS
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.savepoint import SavePoint
+    from plugins.module_utils.defaults.main import OPN_MOD_ARGS
+    from plugins.module_utils.main.savepoint import SavePoint
 
 except MODULE_EXCEPTIONS:
     module_dependency_error()

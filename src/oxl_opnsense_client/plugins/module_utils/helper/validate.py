@@ -7,13 +7,13 @@ from socket import getservbyname
 from ipaddress import ip_address, ip_network, IPv4Address, IPv6Address, IPv6Network, AddressValueError, \
     NetmaskValueError
 
-from ansible.module_utils.basic import AnsibleModule
+from basic.ansible import AnsibleModule
 
 # pylint: disable=W0611
 #   (proxied imports)
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import \
+from plugins.module_utils.helper.main import \
     is_unset, ensure_list, is_true, unset_check_error
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+from plugins.module_utils.base.handler import \
     exit_bug
 
 MATCH_DOMAIN = regex_compile(

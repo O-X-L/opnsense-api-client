@@ -1,6 +1,6 @@
-from ansible.module_utils.basic import AnsibleModule
+from basic.ansible import AnsibleModule
 
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import single_post
+from plugins.module_utils.base.api import single_post
 
 
 class SavePoint:

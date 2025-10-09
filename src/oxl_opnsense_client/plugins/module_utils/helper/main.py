@@ -1,8 +1,8 @@
 from typing import Callable
 from functools import reduce
 
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+from basic.ansible import AnsibleModule
+from plugins.module_utils.base.handler import \
     exit_bug, exit_cnf
 
 

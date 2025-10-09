@@ -1,4 +1,4 @@
-from ansible.module_utils.basic import AnsibleModule
+from basic.ansible import AnsibleModule
 
 
 def validate_values(error_func, module: AnsibleModule, cnf: dict, kind: str = 'filter') -> None:

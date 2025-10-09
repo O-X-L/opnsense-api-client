@@ -1,12 +1,12 @@
 from ipaddress import IPv6Address, IPv4Address, AddressValueError, NetmaskValueError
 
-from ansible.module_utils.basic import AnsibleModule
+from basic.ansible import AnsibleModule
 
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+from plugins.module_utils.base.api import \
     Session
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+from plugins.module_utils.helper.validate import \
     is_ip, is_unset, is_valid_domain
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.cls import BaseModule
 
 
 class Syslog(BaseModule):

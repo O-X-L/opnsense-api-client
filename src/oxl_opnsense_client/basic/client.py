@@ -2,12 +2,12 @@ from pathlib import Path
 from sys import modules as sys_modules
 from socket import socket, AF_INET, AF_INET6, SOCK_STREAM, gaierror
 
-from .exceptions import ClientFailure, ModuleFailure
-from .plugins.module_utils.base.api import Session
-from .plugins.module_input import ModuleInput, empty_results
+from basic.exceptions import ClientFailure, ModuleFailure
+from basic.module_input import ModuleInput, empty_results
+from plugins.module_utils.base.api import Session
 
 # pylint: disable=W0401,W0614
-from .plugins.modules import *
+from plugins.modules import *
 
 _MODULES = [
     m.rsplit('.', 1)[1] for m in sys_modules if m.find('plugins.modules.') != -1

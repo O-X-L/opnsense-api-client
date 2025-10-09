@@ -1,4 +1,4 @@
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+from plugins.module_utils.defaults.main import \
     OPN_MOD_ARGS, STATE_MOD_ARG
 
 ALIAS_DEFAULTS = {

@@ -1,5 +1,5 @@
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.test.util_pytest import log_test
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.test.testdata.base_testdata import \
+from plugins.module_utils.test.util_pytest import log_test
+from plugins.module_utils.test.testdata.base_testdata import \
     MockOPNsenseController
 
 

@@ -7,15 +7,14 @@ on:
     branches: [latest]
     paths:
       - '**.py'
-      - '.github/workflows/test.yml'
+      - '.github/workflows/unittest.yml'
       - 'requirements_test.txt'
       - '.pytest.ini'
   pull_request:
     branches: [latest]
     paths:
       - '**.py'
-      - '**.yml'
-      - '.github/workflows/test.yml'
+      - '.github/workflows/unittest.yml'
       - 'requirements_test.txt'
       - '.pytest.ini'
 jobs:
@@ -35,7 +34,7 @@ jobs:
       - name: Install python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
       - name: Install dependencies
         run: |
@@ -45,4 +44,4 @@ jobs:
       - name: Running Unit Tests
         run: |
           pytest --version
-          python3 -m pytest -c .pytest.ini src/tests/unit/
+          pytest -c .pytest.ini --cov

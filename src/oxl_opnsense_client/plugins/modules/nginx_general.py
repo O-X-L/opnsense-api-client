@@ -6,16 +6,16 @@
 
 # see: https://docs.opnsense.org/development/api/plugins/nginx.html
 
-from ansible.module_utils.basic import AnsibleModule
+from basic.ansible import AnsibleModule
 
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+from plugins.module_utils.base.handler import \
     module_dependency_error, MODULE_EXCEPTIONS
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.wrapper import module_wrapper
+from plugins.module_utils.base.wrapper import module_wrapper
 
 try:
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+    from plugins.module_utils.defaults.main import \
         EN_ONLY_MOD_ARG, OPN_MOD_ARGS, RELOAD_MOD_ARG
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.nginx_general import General
+    from plugins.module_utils.main.nginx_general import General
 
 
 except MODULE_EXCEPTIONS:

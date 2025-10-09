@@ -6,15 +6,15 @@
 
 # see: https://docs.opnsense.org/development/api/core/ipsec.html
 
-from ansible.module_utils.basic import AnsibleModule
+from basic.ansible import AnsibleModule
 
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+from plugins.module_utils.base.handler import \
     module_dependency_error, MODULE_EXCEPTIONS
 
 try:
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.wrapper import module_wrapper
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.ipsec_psk import PreSharedKey
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+    from plugins.module_utils.base.wrapper import module_wrapper
+    from plugins.module_utils.main.ipsec_psk import PreSharedKey
+    from plugins.module_utils.defaults.main import \
         OPN_MOD_ARGS, STATE_ONLY_MOD_ARG, RELOAD_MOD_ARG_DEF_FALSE
 
 except MODULE_EXCEPTIONS:

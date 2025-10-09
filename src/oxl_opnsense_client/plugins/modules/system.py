@@ -6,15 +6,15 @@
 
 # see: https://docs.opnsense.org/development/api/core/firmware.html
 
-from ansible.module_utils.basic import AnsibleModule
+from basic.ansible import AnsibleModule
 
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+from plugins.module_utils.base.handler import \
     module_dependency_error, MODULE_EXCEPTIONS
 
 try:
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import Session
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import OPN_MOD_ARGS
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.system import wait_for_response, \
+    from plugins.module_utils.base.api import Session
+    from plugins.module_utils.defaults.main import OPN_MOD_ARGS
+    from plugins.module_utils.helper.system import wait_for_response, \
         wait_for_update, get_upgrade_status
 
 except MODULE_EXCEPTIONS:

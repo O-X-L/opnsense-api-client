@@ -1,14 +1,14 @@
-from ansible.module_utils.basic import AnsibleModule
+from basic.ansible import AnsibleModule
 
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
+from plugins.module_utils.base.api import \
     Session
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import \
+from plugins.module_utils.helper.main import \
     to_digit, simplify_translate
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+from plugins.module_utils.helper.validate import \
     is_ip4, is_ip6, valid_hostname, is_unset
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.unbound import \
+from plugins.module_utils.helper.unbound import \
     validate_domain
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.cls import BaseModule
 
 
 class Host(BaseModule):

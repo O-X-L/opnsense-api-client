@@ -1,3 +1,3 @@
 def test_placeholder():
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+    from plugins.module_utils.base.handler import \
         ModuleSoftError, ModuleValidationError

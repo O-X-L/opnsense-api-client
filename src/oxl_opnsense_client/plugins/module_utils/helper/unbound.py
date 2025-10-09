@@ -1,6 +1,6 @@
-from ansible.module_utils.basic import AnsibleModule
+from basic.ansible import AnsibleModule
 
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
+from plugins.module_utils.helper.validate import \
     is_valid_domain
 
 

@@ -1,4 +1,4 @@
-from base.exceptions import ModuleFailure
+from basic.exceptions import ModuleFailure
 
 MODULE_EXCEPTIONS = (ModuleNotFoundError, ImportError)
 

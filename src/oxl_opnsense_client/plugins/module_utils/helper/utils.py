@@ -9,7 +9,7 @@ from inspect import getfile as inspect_getfile
 
 from httpx import ConnectError, ConnectTimeout
 
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+from plugins.module_utils.defaults.main import \
     DEBUG_CONFIG
 
 

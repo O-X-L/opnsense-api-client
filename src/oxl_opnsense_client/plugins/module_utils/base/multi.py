@@ -1,13 +1,13 @@
 from abc import ABC
 
-from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.common.arg_spec import ModuleArgumentSpecValidator
+from basic.ansible import AnsibleModule
+from basic.ansible import ModuleArgumentSpecValidator
 
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import ModuleSoftError
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import diff_remove_empty
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import Session
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.cls import BaseModule
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+from plugins.module_utils.base.handler import ModuleSoftError
+from plugins.module_utils.helper.main import diff_remove_empty
+from plugins.module_utils.base.api import Session
+from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.defaults.main import \
     OPN_MOD_ARGS, RELOAD_MOD_ARG_DEF_FALSE
 
 

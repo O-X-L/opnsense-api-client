@@ -6,19 +6,19 @@
 
 # see: https://docs.opnsense.org/development/api/plugins/bind.html
 
-from ansible.module_utils.basic import AnsibleModule
+from basic.ansible import AnsibleModule
 
-from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.handler import \
+from plugins.module_utils.base.handler import \
     module_dependency_error, MODULE_EXCEPTIONS
 
 try:
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.wrapper import \
+    from plugins.module_utils.base.wrapper import \
         module_wrapper, is_multi_module_call, module_multi_wrapper
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.multi import \
+    from plugins.module_utils.base.multi import \
         build_multi_mod_args, MultiModuleCallbacks
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import \
+    from plugins.module_utils.defaults.main import \
         OPN_MOD_ARGS, STATE_MOD_ARG, RELOAD_MOD_ARG
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.bind_record import \
+    from plugins.module_utils.main.bind_record import \
         Record
 
 except MODULE_EXCEPTIONS:

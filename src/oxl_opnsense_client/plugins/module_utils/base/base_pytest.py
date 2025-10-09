@@ -1,2 +1,2 @@
 def test_placeholder():
-    from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.base import Base
+    from plugins.module_utils.base.base import Base
