@@ -26,15 +26,12 @@ jobs:
         shell: bash
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.ref }}
+      - uses: actions/checkout@v5
 
       - name: Install python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
@@ -44,4 +41,4 @@ jobs:
       - name: Running Unit Tests
         run: |
           pytest --version
-          pytest -c .pytest.ini --cov
+          python3 -m pytest -c .pytest.ini --cov
