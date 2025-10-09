@@ -1,7 +1,6 @@
 from pathlib import Path
 
-from basic.exceptions import ModuleFailure, ModuleSuccess
-# from basic.module_input import ModuleInput
+from basic.exceptions import ModuleHelp
 
 # abstracted replacement for the ansible-module logic
 
@@ -21,10 +20,15 @@ class ValidationError:
     def __init__(self, msg: str):
         self.msg = msg
 
+    def __repr__(self) -> str:
+        return self.msg
 
 class ValidationResult:
     def __init__(self, errors: list[ValidationError]):
         self.errors = errors
+
+    def __repr__(self) -> str:
+        return str(self.errors)
 
 
 # pylint: disable=R0915
@@ -43,7 +47,8 @@ def validate_and_normalize_params(parameters: dict, argument_spec: dict) -> tupl
                     kn = ka
                     break
 
-        if kn not in p:
+        empty = False
+        if kn not in p or p[kn] in [None, '']:
             if 'required' in d and d['required']:
                 errors.append(ValidationError(f"The required parameter '{k}' was not provided!"))
 
@@ -55,6 +60,9 @@ def validate_and_normalize_params(parameters: dict, argument_spec: dict) -> tupl
 
         else:
             normalized_params[k] = parameters[k]
+
+        if empty:
+            continue
 
         if 'type' in d:
             t = TYPE_MAPPING[d['type']]
@@ -93,35 +101,75 @@ class ModuleArgumentSpecValidator:
         if self.result is not None:
             return self.result
 
-        result, _ = validate_and_normalize_params(parameters, self.argument_spec)
+        try:
+            result, _ = validate_and_normalize_params(parameters, self.argument_spec)
+
+        except KeyError as e:
+            return ValidationResult([
+                ValidationError(f"Failed to validate parameters: {e}")
+            ])
+
         return result
 
 
+class ModuleInput:
+    def __init__(self, client, params: dict, check_mode: bool = False, exit_help: bool = False):
+        self.c = client
+        self.user_params = params
+        self.check_mode = check_mode
+        self.exit_help = exit_help
+
+    @property
+    def params(self):
+        return {**self.c.params, **self.user_params}
+
+
 class AnsibleModule:
-    def __init__(self, argument_spec: dict, supports_check_mode: bool):
+    def __init__(
+            self,
+            argument_spec: dict,
+            module_input: ModuleInput,
+            supports_check_mode: bool = False,
+            required_if: list = None,
+            required_one_of: list = None,
+            mutually_exclusive: list = None,
+    ):
         self.argument_spec = argument_spec
         self.supports_check_mode = supports_check_mode
+        del required_if, required_one_of, mutually_exclusive
 
-        # todo: module_input
-        self.check_mode = False
-        self.diff_mode = False
-        self.params = {}
+        self._module_input = module_input
+
+        self.check_mode = self._module_input.check_mode
+        self.params = self._module_input.params
+        self._validate_and_normalize()
 
     def _validate_and_normalize(self):
-        result, normalized_params = validate_and_normalize_params(self.params, self.argument_spec)
+        if self._module_input.exit_help:
+            raise ModuleHelp(self.argument_spec)
+
+        try:
+            result, normalized_params = validate_and_normalize_params(self.params, self.argument_spec)
+
+        except KeyError as e:
+            self.fail_json(f"Failed to validate parameters: {e}")
+            return
+
         if len(result.errors) > 0:
             self.fail_json(f"Failed to validate parameters: {result.errors}")
 
         self.params = normalized_params
 
-    @staticmethod
-    def exit_json(result: dict):
-        raise ModuleSuccess(result)
+
 
     @staticmethod
-    def warn(msg: str):
-        print(f"WARNING: {msg}")
+    def exit_json(data: dict):
+        del data
+        # pylint: disable=E0711,E0702
+        raise NotImplemented
 
-    @staticmethod
-    def fail_json(msg: str):
-        raise ModuleFailure(msg)
+    def warn(self, msg: str):
+        self._module_input.c.warn(msg)
+
+    def fail_json(self, msg: str):
+        self._module_input.c.fail(msg)

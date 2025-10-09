@@ -23,7 +23,7 @@ except MODULE_EXCEPTIONS:
 
 
 # pylint: disable=R0915
-def run_module():
+def run_module(module_input):
     module_args = dict(
         name=dict(
             type='str', required=False, default='all', aliases=['service', 'svc', 'target', 'n'],
@@ -47,6 +47,7 @@ def run_module():
     )
 
     module = AnsibleModule(
+        module_input=module_input,
         argument_spec=module_args,
         supports_check_mode=True,
     )
@@ -82,7 +83,7 @@ def run_module():
                     'controller': 'hasync_status',
                     'command': 'restartAll',
                 })
-            module.exit_json(**result)
+            return result
 
         # Restart named service(s)
         services = session.get(cnf={
@@ -114,12 +115,12 @@ def run_module():
                     module.fail_json(msg=f"Action {module.params['action']} for {service['description']} "
                                          f"failed with {resp['status']}")
 
-    module.exit_json(**result)
+    return result
 
 
-def main():
-    run_module()
+
+
 
 
 if __name__ == '__main__':
-    main()
+    pass

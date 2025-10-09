@@ -23,7 +23,7 @@ except MODULE_EXCEPTIONS:
 # EXAMPLES = 'https://ansible-opnsense.oxl.app/modules/webproxy.html'
 
 
-def run_module():
+def run_module(module_input):
     module_args = dict(
         allow=dict(
             type='list', elements='str', required=False, default=[],
@@ -114,17 +114,18 @@ def run_module():
     )
 
     module = AnsibleModule(
+        module_input=module_input,
         argument_spec=module_args,
         supports_check_mode=True,
     )
 
     module_wrapper(General(module=module, result=result))
-    module.exit_json(**result)
+    return result
 
 
-def main():
-    run_module()
+
+
 
 
 if __name__ == '__main__':
-    main()
+    pass

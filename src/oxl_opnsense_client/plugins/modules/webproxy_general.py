@@ -29,7 +29,7 @@ BLANK_VALUES = {
 }
 
 
-def run_module():
+def run_module(module_input):
     module_args = dict(
         errors=dict(
             type='str', required=False, default='opnsense', aliases=['error_pages'],
@@ -117,6 +117,7 @@ def run_module():
     )
 
     module = AnsibleModule(
+        module_input=module_input,
         argument_spec=module_args,
         supports_check_mode=True,
     )
@@ -126,12 +127,12 @@ def run_module():
             module.params[field] = ''  # BlankDesc
 
     module_wrapper(General(module=module, result=result))
-    module.exit_json(**result)
+    return result
 
 
-def main():
-    run_module()
+
+
 
 
 if __name__ == '__main__':
-    main()
+    pass

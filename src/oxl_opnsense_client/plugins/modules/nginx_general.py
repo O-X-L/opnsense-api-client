@@ -25,7 +25,7 @@ except MODULE_EXCEPTIONS:
 # EXAMPLES = 'https://ansible-opnsense.oxl.app/modules/nginx.html'
 
 
-def run_module():
+def run_module(module_input):
     module_args = dict(
         ban_ttl=dict(type='int', required=False, default=0),
         **EN_ONLY_MOD_ARG,
@@ -34,6 +34,7 @@ def run_module():
     )
 
     module = AnsibleModule(
+        module_input=module_input,
         argument_spec=module_args,
         supports_check_mode=True,
     )
@@ -47,12 +48,12 @@ def run_module():
     )
 
     module_wrapper(General(module=module, result=result))
-    module.exit_json(**result)
+    return result
 
 
-def main():
-    run_module()
+
+
 
 
 if __name__ == '__main__':
-    main()
+    pass

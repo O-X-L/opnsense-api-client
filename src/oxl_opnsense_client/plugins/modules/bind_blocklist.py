@@ -52,7 +52,7 @@ BL_MAPPING = {
 }
 
 
-def run_module():
+def run_module(module_input):
     module_args = dict(
         block=dict(
             type='list', elements='str', required=False, choices=list(BL_MAPPING.keys()),
@@ -90,6 +90,7 @@ def run_module():
     )
 
     module = AnsibleModule(
+        module_input=module_input,
         argument_spec=module_args,
         supports_check_mode=True,
     )
@@ -101,12 +102,12 @@ def run_module():
     module.params['block'] = translated_lists
 
     module_wrapper(Blocklist(module=module, result=result))
-    module.exit_json(**result)
+    return result
 
 
-def main():
-    run_module()
+
+
 
 
 if __name__ == '__main__':
-    main()
+    pass

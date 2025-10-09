@@ -37,7 +37,7 @@ USER_CN_STRICT_MAP = {
     'ci': 2,
 }
 
-def run_module():
+def run_module(module_input):
     module_args = dict(
         # general
         port=dict(
@@ -224,6 +224,7 @@ def run_module():
     )
 
     module = AnsibleModule(
+        module_input=module_input,
         argument_spec=module_args,
         supports_check_mode=True,
     )
@@ -231,12 +232,12 @@ def run_module():
     module.params['user_cn_strict'] = USER_CN_STRICT_MAP[module.params['user_cn_strict']]
 
     module_wrapper(Server(module=module, result=result))
-    module.exit_json(**result)
+    return result
 
 
-def main():
-    run_module()
+
+
 
 
 if __name__ == '__main__':
-    main()
+    pass

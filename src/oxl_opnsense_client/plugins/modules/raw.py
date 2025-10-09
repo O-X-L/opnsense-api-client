@@ -26,7 +26,7 @@ except MODULE_EXCEPTIONS:
 
 
 # pylint: disable=R0915
-def run_module():
+def run_module(module_input):
     module_args = dict(
         module=dict(
             type='str', aliases=['m', 'mod'], default=None,
@@ -73,6 +73,7 @@ def run_module():
     )
 
     module = AnsibleModule(
+        module_input=module_input,
         argument_spec=module_args,
         supports_check_mode=True,
         required_if=[
@@ -132,12 +133,12 @@ def run_module():
             result['response'] = single_post(**req, headers=p['headers'])
 
 
-    module.exit_json(**result)
+    return result
 
 
-def main():
-    run_module()
+
+
 
 
 if __name__ == '__main__':
-    main()
+    pass

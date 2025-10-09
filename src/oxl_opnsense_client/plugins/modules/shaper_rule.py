@@ -27,7 +27,7 @@ except MODULE_EXCEPTIONS:
 # EXAMPLES = 'https://ansible-opnsense.oxl.app/modules/shaper.html'
 
 
-def run_module():
+def run_module(module_input):
     module_args = dict(
         target_pipe=dict(type='str', required=False, aliases=['pipe']),
         target_queue=dict(type='str', required=False, aliases=['queue']),
@@ -106,17 +106,18 @@ def run_module():
     )
 
     module = AnsibleModule(
+        module_input=module_input,
         argument_spec=module_args,
         supports_check_mode=True,
     )
 
     module_wrapper(Rule(module=module, result=result))
-    module.exit_json(**result)
+    return result
 
 
-def main():
-    run_module()
+
+
 
 
 if __name__ == '__main__':
-    main()
+    pass

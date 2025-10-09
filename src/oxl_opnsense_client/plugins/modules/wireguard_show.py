@@ -23,12 +23,13 @@ except MODULE_EXCEPTIONS:
 # EXAMPLES = 'https://ansible-opnsense.oxl.app/modules/wireguard.html'
 
 
-def run_module():
+def run_module(module_input):
     module_args = dict(
         **OPN_MOD_ARGS,
     )
 
     module = AnsibleModule(
+        module_input=module_input,
         argument_spec=module_args,
         supports_check_mode=True,
     )
@@ -48,12 +49,12 @@ def run_module():
         if isinstance(info, str):
             info = info.strip()
 
-    module.exit_json(data=info)
+    return info
 
 
-def main():
-    run_module()
+
+
 
 
 if __name__ == '__main__':
-    main()
+    pass

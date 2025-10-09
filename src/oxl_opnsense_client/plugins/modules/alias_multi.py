@@ -22,7 +22,7 @@ except MODULE_EXCEPTIONS:
 # EXAMPLES = 'https://ansible-opnsense.oxl.app/modules/alias.html'
 
 
-def run_module():
+def run_module(module_input):
     module_args = dict(
         aliases=dict(type='dict', required=True),
         **RELOAD_MOD_ARG,
@@ -30,14 +30,15 @@ def run_module():
     )
 
     AnsibleModule(
+        module_input=module_input,
         argument_spec=module_args,
         supports_check_mode=True,
     ).fail_json('This module was deprecated in favor of: https://ansible-opnsense.oxl.app/modules/1_multi.html')
 
 
-def main():
-    run_module()
+
+
 
 
 if __name__ == '__main__':
-    main()
+    pass

@@ -44,7 +44,7 @@ class MultiCallbacks(MultiModuleCallbacks):
         entry.existing_domains = cache['domains']
 
 
-def run_module():
+def run_module(module_input):
     entry_args = dict(
         domain=dict(type='str', required=True, aliases=['domain_name']),
         name=dict(type='str', required=True, aliases=['record']),
@@ -86,6 +86,7 @@ def run_module():
     )
 
     module = AnsibleModule(
+        module_input=module_input,
         argument_spec=module_args,
         supports_check_mode=True,
         mutually_exclusive=[
@@ -117,12 +118,12 @@ def run_module():
     else:
         module_wrapper(Record(module=module, result=result))
 
-    module.exit_json(**result)
+    return result
 
 
-def main():
-    run_module()
+
+
 
 
 if __name__ == '__main__':
-    main()
+    pass

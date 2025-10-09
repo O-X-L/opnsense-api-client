@@ -6,7 +6,7 @@ from plugins.module_utils.base.handler import \
     exit_bug, exit_cnf
 
 
-def diff_remove_empty(diff: dict, to_none: bool = False) -> dict:
+def diff_remove_empty(diff: dict, to_none: bool = True) -> dict:
     d = diff.copy()
     for k in diff:
         if len(diff[k]) == 0:

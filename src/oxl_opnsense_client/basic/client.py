@@ -1,24 +1,27 @@
+from os import listdir
 from pathlib import Path
-from sys import modules as sys_modules
+from importlib import import_module
+from json import dumps as json_dumps
 from socket import socket, AF_INET, AF_INET6, SOCK_STREAM, gaierror
 
-from basic.exceptions import ClientFailure, ModuleFailure
-from basic.module_input import ModuleInput, empty_results
+from basic.ansible import ModuleInput, AnsibleModule
+from basic.exceptions import ClientFailure, ModuleFailure, ModuleHelp
 from plugins.module_utils.base.api import Session
+from plugins.module_utils.helper.validate import is_ip6
+from plugins.module_utils.defaults.main import OPN_MOD_ARGS
 
-# pylint: disable=W0401,W0614
-from plugins.modules import *
-
+_BASE_PATH = Path(__file__).parent.parent
 _MODULES = [
-    m.rsplit('.', 1)[1] for m in sys_modules if m.find('plugins.modules.') != -1
+    m.rsplit('.', 1)[0] for m in listdir(_BASE_PATH / 'plugins'  / 'modules')
+    if not m.startswith('_')
 ]
-_BASE_PATH = Path(__file__).parent
-_PLUGIN_PATH = _BASE_PATH / 'plugins'  / 'module_utils' / 'main'
+_MODULES.sort()
 
 
 class Client:
     PARAMS = [
-        'firewall', 'port',
+        'firewall', 'api_port',
+        'api_credential_file', 'api_token', 'api_secret',
         'ssl_verify', 'ssl_ca_file', 'api_timeout', 'api_retries',
         'debug', 'profiling',
     ]
@@ -32,8 +35,10 @@ class Client:
             shell: bool = True,
     ):
         self.firewall = firewall
-        self.port = port
-        self.credential_file = credential_file
+        self.api_port = port
+        self.api_token = token
+        self.api_secret = secret
+        self.api_credential_file = credential_file
         self.ssl_verify = ssl_verify
         self.ssl_ca_file = ssl_ca_file
         self.api_timeout = api_timeout
@@ -42,21 +47,24 @@ class Client:
         self.profiling = profiling
         self.shell = shell
 
-        self._api_token = token
-        self._api_secret = secret
-        self._load_credentials_from_file()
-
         self._validate_params()
-        self.session = Session(m=self, token=self._api_token, secret=self._api_secret)
+        self.session = Session(module=AnsibleModule(
+            argument_spec=OPN_MOD_ARGS,
+            module_input=ModuleInput(client=self, params=self.params)
+        ))
         self._validate_environment()
 
+    @property
+    def params(self) -> dict:
+        return {k: getattr(self, k) for k in self.PARAMS}
+
     def _validate_params(self):
-        if self._api_secret is None and self.credential_file is None:
+        if self.api_secret is None and self.api_credential_file is None:
             self.error('You need to either provide your API credentials (file or token + secret)!')
 
-        if self.credential_file is not None:
-            self.credential_file = Path(self.credential_file)
-            if not self.credential_file.is_file():
+        if self.api_credential_file is not None:
+            self.api_credential_file = Path(self.api_credential_file)
+            if not self.api_credential_file.is_file():
                 self.error('The provided Credentials-File does not exist!')
 
         if self.ssl_ca_file is not None:
@@ -90,7 +98,7 @@ class Client:
                 s.settimeout(self.api_timeout)
                 return s.connect_ex((
                     self.params['firewall'],
-                    self.params['port']
+                    self.params['api_port']
                 )) == 0
 
         try:
@@ -100,7 +108,12 @@ class Client:
             return _reachable(AF_INET6)
 
     def is_opnsense(self) -> bool:
-        login_page = self.session.s.get(self.session.url)
+        # todo: set session.url in upstream code
+        fw = self.firewall
+        if is_ip6(fw, strip_enclosure=False):
+            fw = f"[{fw}]"
+
+        login_page = self.session.s.get(f"https://{fw}:{self.api_port}")
 
         if login_page.status_code != 200:
             return False
@@ -118,28 +131,48 @@ class Client:
         except ClientFailure:
             return False
 
-    @property
-    def params(self) -> dict:
-        return {k: getattr(self, k) for k in self.PARAMS}
-
     # pylint: disable=W0612,W0123
-    def run_module(self, name: str, params: dict, check_mode: bool = False) -> dict:
+    def run_module(self, name: str, params: dict, check_mode: bool = False, exit_help: bool = False) -> dict:
         name = name.lower()
         if name not in _MODULES:
             raise ModuleNotFoundError('Module does not exist!')
 
-        i = ModuleInput(client=self, params=params, check_mode=check_mode)
-        r = empty_results()
+        i = ModuleInput(
+            client=self,
+            params={**params, **self.params},
+            check_mode=check_mode,
+            exit_help=exit_help,
+        )
         try:
-            eval(f'{name}(i, r)')
-            return {'error': None, 'result': r}
+            module = import_module(f'plugins.modules.{name}')
+            result = module.run_module(i)
+            return {'error': None, 'result': result}
 
-        except (ClientFailure, ModuleFailure) as e:
+        except (ClientFailure, ModuleFailure, ModuleNotFoundError) as e:
             if self.shell:
                 raise
 
-            return {'error': str(e), 'result': r}
+            return {'error': str(e), 'result': None}
 
+    @staticmethod
+    def list_modules() -> list:
+        return _MODULES
+
+    def module_specs(self, name: str, stdout: bool = False) -> (dict, None):
+        try:
+            self.run_module(name=name, params={}, exit_help=True)
+            raise ModuleFailure()
+
+        except ModuleHelp as e:
+            specs = e.specs
+            for k in OPN_MOD_ARGS:
+                specs.pop(k)
+
+            if stdout:
+                print(json_dumps(specs, indent=2))
+                return None
+
+            return {'specs': specs}
 
     def error(self, msg: str):
         if self.shell:
@@ -160,48 +193,6 @@ class Client:
     @staticmethod
     def info(msg: str):
         print(f"INFO: {msg}")
-
-    def _load_credentials_from_file(self) -> None:
-        if self.credential_file is None:
-            return
-
-        cred_file_info = Path(self.credential_file)
-
-        if cred_file_info.is_file():
-            cred_file_mode = oct(cred_file_info.stat().st_mode)[-3:]
-
-            if int(cred_file_mode[2]) != 0:
-                self.warn(
-                    f"Provided 'credential_file' at path "
-                    f"'{self.credential_file}' is world-readable "
-                    f"(mode {cred_file_mode})!"
-                )
-
-            with open(self.credential_file, 'r', encoding='utf-8') as file:
-                config = {}
-
-                for line in file.readlines():
-                    try:
-                        key, value = line.split('=', 1)
-                        config[key] = value.strip()
-
-                    except ValueError:
-                        pass
-
-                if 'key' not in config or 'secret' not in config:
-                    self.fail(
-                        f"Credential file '{self.credential_file}' "
-                        'could not be parsed!'
-                    )
-
-                self._api_token = config['key']
-                self._api_secret = config['secret']
-
-        else:
-            self.fail(
-                f"Provided 'credential_file' at path "
-                f"'{self.credential_file}' does not exist!"
-            )
 
     def __enter__(self):
         return self

@@ -38,7 +38,7 @@ ACTION_MAPPING = {
     'update_rules': {'a': 'updateRules', 'post': True},
 }
 
-def run_module():
+def run_module(module_input):
     module_args = dict(
         action=dict(
             type='str', required=True, aliases=['do', 'a'],
@@ -60,6 +60,7 @@ def run_module():
     )
 
     module = AnsibleModule(
+        module_input=module_input,
         argument_spec=module_args,
         supports_check_mode=True,
     )
@@ -112,12 +113,12 @@ def run_module():
 
         result['data'] = info
 
-    module.exit_json(**result)
+    return result
 
 
-def main():
-    run_module()
+
+
 
 
 if __name__ == '__main__':
-    main()
+    pass

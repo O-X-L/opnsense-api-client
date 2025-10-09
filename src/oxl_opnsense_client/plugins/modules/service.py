@@ -75,7 +75,7 @@ API_CONTROLLER = 'service'
 
 
 # pylint: disable=R0915
-def run_module():
+def run_module(module_input):
     service_choices = list(SERVICES.keys())
     service_choices.sort()
 
@@ -99,6 +99,7 @@ def run_module():
     )
 
     module = AnsibleModule(
+        module_input=module_input,
         argument_spec=module_args,
         supports_check_mode=True,
     )
@@ -163,12 +164,12 @@ def run_module():
                 }
             )
 
-    module.exit_json(**result)
+    return result
 
 
-def main():
-    run_module()
+
+
 
 
 if __name__ == '__main__':
-    main()
+    pass

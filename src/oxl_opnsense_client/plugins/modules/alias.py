@@ -45,7 +45,7 @@ class MultiCallbacks(MultiModuleCallbacks):
         return builtin_alias(entry['name'])
 
 
-def run_module():
+def run_module(module_input):
     entry_args = dict(
         name=dict(type='str', required=True, aliases=['n']),
         description=dict(
@@ -87,6 +87,7 @@ def run_module():
     )
 
     module = AnsibleModule(
+        module_input=module_input,
         argument_spec=module_args,
         supports_check_mode=True,
         mutually_exclusive=[
@@ -118,12 +119,12 @@ def run_module():
     else:
         module_wrapper(Alias(module=module, result=result))
 
-    module.exit_json(**result)
+    return result
 
 
-def main():
-    run_module()
+
+
 
 
 if __name__ == '__main__':
-    main()
+    pass

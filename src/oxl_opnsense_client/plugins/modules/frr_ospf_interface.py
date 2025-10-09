@@ -25,7 +25,7 @@ except MODULE_EXCEPTIONS:
 # EXAMPLES = 'https://ansible-opnsense.oxl.app/modules/frr_ospf.html'
 
 
-def run_module():
+def run_module(module_input):
     module_args = dict(
         interface=dict(type='str', required=True, aliases=['name', 'int']),
         auth_type=dict(type='str', required=False, choices=['message-digest']),
@@ -72,17 +72,18 @@ def run_module():
     )
 
     module = AnsibleModule(
+        module_input=module_input,
         argument_spec=module_args,
         supports_check_mode=True,
     )
 
     module_wrapper(Interface(module=module, result=result))
-    module.exit_json(**result)
+    return result
 
 
-def main():
-    run_module()
+
+
 
 
 if __name__ == '__main__':
-    main()
+    pass
