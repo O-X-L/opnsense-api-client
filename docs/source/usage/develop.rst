@@ -31,6 +31,10 @@ Test & Lint
 
 .. code-block:: bash
 
+    # ALL
+    pip install -r requirements.txt
+
+
     # LINT
     pip install -r requirements_lint.txt
 
@@ -38,9 +42,21 @@ Test & Lint
     # or
     bash scripts/lint.sh
 
+
     # UNIT TESTS
     pip install -r requirements_test.txt
 
     make unit-test
     # or
     bash scripts/unit_test.sh
+
+
+    # FUNCTIONAL TESTS
+    pip install -r requirements_test.txt
+
+    export TEST_FIREWALL=<IP>
+    export TEST_API_CREDS=/tmp/opn.txt
+
+    make func-test
+    # or
+    bash scripts/functional_test.sh

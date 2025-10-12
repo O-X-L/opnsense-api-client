@@ -4,4 +4,4 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-python3 -m pytest --cov -c pytest.ini $@
+python3 -m pytest -c pytest_functional.ini $@

@@ -6,3 +6,6 @@ make unit-test:
 
 make lint:
 	bash scripts/lint.sh
+
+make func-test:
+	bash scripts/functional_test.sh

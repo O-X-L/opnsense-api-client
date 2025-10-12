@@ -10,3 +10,4 @@ __pycache__
 
 src/oxl_opnsense_client.egg-info
 src/tests/integration/OPNsense.pem
+VERSION

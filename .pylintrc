@@ -56,7 +56,8 @@ ignore-paths=venv/,
              .venv/,
              build/,
              .*_pytest.py,
-             .*_testdata.py
+             .*_testdata.py,
+             .*_functest.py
 
 # Files or directories matching the regular expression patterns are skipped.
 # The regex matches against base names, not paths. The default value ignores

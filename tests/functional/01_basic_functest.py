@@ -1,15 +1,15 @@
 from httpx import ConnectError
 
-from tests.integration import config
+from test_config import *
 
 
 def test_environment_checks():
-    from oxl_opnsense_client import Client
+    from basic.client import Client
 
     with Client(
-        firewall=config.FIREWALL,
-        port=config.PORT,
-        credential_file=config.CREDENTIAL_FILE,
+        firewall=FIREWALL,
+        port=PORT,
+        credential_file=CREDENTIAL_FILE,
         ssl_verify=False,
     ) as c:
         assert c.reachable()
@@ -17,12 +17,12 @@ def test_environment_checks():
 
 
 def test_credentials():
-    from oxl_opnsense_client import Client
+    from basic.client import Client
 
     with Client(
-        firewall=config.FIREWALL,
-        port=config.PORT,
-        credential_file=config.CREDENTIAL_FILE,
+        firewall=FIREWALL,
+        port=PORT,
+        credential_file=CREDENTIAL_FILE,
         ssl_verify=False,
     ) as c:
         assert c.reachable()
@@ -30,10 +30,10 @@ def test_credentials():
         assert c.correct_credentials()
 
     with Client(
-        firewall=config.FIREWALL,
-        port=config.PORT,
-        token=config.TOKEN,
-        secret=config.SECRET,
+        firewall=FIREWALL,
+        port=PORT,
+        token=TOKEN,
+        secret=SECRET,
         ssl_verify=False,
     ) as c:
         assert c.reachable()
@@ -42,25 +42,25 @@ def test_credentials():
 
 
 def test_check():
-    from oxl_opnsense_client import Client
+    from basic.client import Client
 
     with Client(
-        firewall=config.FIREWALL,
-        port=config.PORT,
-        credential_file=config.CREDENTIAL_FILE,
+        firewall=FIREWALL,
+        port=PORT,
+        credential_file=CREDENTIAL_FILE,
         ssl_verify=False,
     ) as c:
         assert c.test()
 
 
 def test_ssl_verification():
-    from oxl_opnsense_client import Client
+    from basic.client import Client
 
     try:
         with Client(
-            firewall=config.FIREWALL,
-            port=config.PORT,
-            credential_file=config.CREDENTIAL_FILE,
+            firewall=FIREWALL,
+            port=PORT,
+            credential_file=CREDENTIAL_FILE,
         ) as _:
             assert False
 
