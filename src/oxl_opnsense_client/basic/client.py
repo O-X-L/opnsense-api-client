@@ -1,5 +1,5 @@
-from os import listdir
 from pathlib import Path
+from os import listdir, environ
 from importlib import import_module
 from json import dumps as json_dumps
 from socket import socket, AF_INET, AF_INET6, SOCK_STREAM, gaierror
@@ -100,6 +100,9 @@ class Client:
                     self.params['firewall'],
                     self.params['api_port']
                 )) == 0
+
+        if 'HTTPS_PROXY' in environ:
+            return True
 
         try:
             return _reachable(AF_INET)
