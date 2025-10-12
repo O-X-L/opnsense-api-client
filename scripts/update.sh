@@ -31,7 +31,7 @@ function patch() {
 
   echo "PATCH: ${file}"
   sed -i 's|^from ansible.module_utils.basic|from basic.ansible|g' "$file"
-  sed -i 's|^from ansible.module_utils.common.arg_spec|from basic.ansible|g' "$file"
+  # sed -i 's|^from ansible.module_utils.common.arg_spec|from basic.ansible|g' "$file"
   sed -i 's|from ansible_collections.oxlorg.opnsense.plugins|from plugins|g' "$file"
   if echo "$file" | grep -q 'plugins/modules/'
   then

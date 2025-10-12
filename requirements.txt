@@ -1,1 +1,3 @@
 httpx
+# only for module-spec validation
+ansible-core

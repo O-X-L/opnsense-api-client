@@ -13,7 +13,7 @@ from plugins.module_utils.defaults.main import OPN_MOD_ARGS
 _BASE_PATH = Path(__file__).parent.parent
 _MODULES = [
     m.rsplit('.', 1)[0] for m in listdir(_BASE_PATH / 'plugins'  / 'modules')
-    if not m.startswith('_')
+    if not m.startswith('_') and not m.endswith('_multi')
 ]
 _MODULES.sort()
 
@@ -21,7 +21,7 @@ _MODULES.sort()
 class Client:
     PARAMS = [
         'firewall', 'api_port',
-        'api_credential_file', 'api_token', 'api_secret',
+        'api_credential_file', 'api_key', 'api_secret',
         'ssl_verify', 'ssl_ca_file', 'api_timeout', 'api_retries',
         'debug', 'profiling',
     ]
@@ -30,13 +30,13 @@ class Client:
     def __init__(
             self,
             firewall: str, token: str = None, secret: str = None, credential_file: str = None, port: int = 443,
-            ssl_verify: bool = True, ssl_ca_file: str = None, api_timeout: float = 2.0, api_retries : int = 0,
-            debug: bool = False, profiling: bool = False,
+            ssl_verify: bool = True, ssl_ca_file: str = '/etc/ssl/certs/ca-certificates.crt', api_timeout: float = 2.0,
+            api_retries : int = 0, debug: bool = False, profiling: bool = False,
             shell: bool = True,
     ):
         self.firewall = firewall
         self.api_port = port
-        self.api_token = token
+        self.api_key = token
         self.api_secret = secret
         self.api_credential_file = credential_file
         self.ssl_verify = ssl_verify
@@ -125,7 +125,7 @@ class Client:
             return None
 
         try:
-            self.run_module('meta_list', params={'target': 'interface_vip'})
+            self.run_module('list', params={'target': 'interface_vip'})
             return True
 
         except ClientFailure:
@@ -167,6 +167,11 @@ class Client:
             specs = e.specs
             for k in OPN_MOD_ARGS:
                 specs.pop(k)
+                if 'multi' in specs and k in specs['multi']['options']:
+                    specs['multi']['options'].pop(k)
+
+                if 'multi_purge' in specs and k in specs['multi_purge']['options']:
+                    specs['multi_purge']['options'].pop(k)
 
             if stdout:
                 print(json_dumps(specs, indent=2))
