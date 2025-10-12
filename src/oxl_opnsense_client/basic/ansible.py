@@ -67,7 +67,7 @@ class AnsibleModule:
         raise NotImplemented
 
     def warn(self, msg: str):
-        self._module_input.c.warn(msg)
+        self._module_input.c.debug_or_warn(msg)
 
     def fail_json(self, msg: str):
         self._module_input.c.fail(msg)

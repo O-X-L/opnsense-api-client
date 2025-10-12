@@ -198,9 +198,19 @@ class Client:
         else:
             print(f"WARN: {msg}")
 
-    @staticmethod
-    def info(msg: str):
-        print(f"INFO: {msg}")
+    def info(self, msg: str):
+        if self.shell:
+            print(f"\x1b[1;34mINFO: {msg}\x1b[0m\n")
+
+        else:
+            print(f"INFO: {msg}")
+
+    def debug_or_warn(self, msg: str):
+        if self.debug:
+            self.info(msg)
+
+        else:
+            self.warn(msg)
 
     def __enter__(self):
         return self
