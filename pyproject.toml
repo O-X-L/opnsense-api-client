@@ -17,7 +17,7 @@ keywords = [
 license = {file = "LICENSE.txt"}
 classifiers = [
     'Programming Language :: Python :: 3',
-    'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+    'License :: OSI Approved :: GNU AFFERO General Public License v3 (AGPLv3)',
 ]
 dynamic = ["dependencies", "version"]
 
