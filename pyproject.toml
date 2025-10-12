@@ -22,7 +22,7 @@ classifiers = [
 dynamic = ["dependencies", "version"]
 
 [project.urls]
-Homepage = "https://www.oxl.at"
+Homepage = "https://www.OXL.at"
 Documentation = "https://github.com/O-X-L/opnsense-api-client"
 Repository = "https://github.com/O-X-L/opnsense-api-client.git"
 Issues = "https://github.com/O-X-L/opnsense-api-client/issues"
@@ -33,6 +33,7 @@ version = {file = ["VERSION"]}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+exclude = ["*_pytest.py"]
 
 [tool.setuptools.package-data]
 "*" = ["*.txt"]
