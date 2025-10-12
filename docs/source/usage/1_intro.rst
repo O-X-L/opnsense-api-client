@@ -2,6 +2,9 @@
 
 .. include:: ../_include/head.rst
 
+.. |intro_gif| image:: ../_static/img/intro.gif
+   :class: wiki-img-sm
+
 =========
 1 - Intro
 =========
@@ -13,6 +16,8 @@ It enables easy management and automation of OPNsense firewalls.
 The base-code is a Fork of `this OPNsense Ansible-Collection <https://github.com/O-X-L/ansible-opnsense>`_ that was refactored for use within raw Python.
 
 This can be useful if you want to automate your Infrastructure and do not use `Ansible <https://www.ansible.com/how-ansible-works/>`_.
+
+|intro_gif|
 
 ----
 

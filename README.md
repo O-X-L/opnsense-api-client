@@ -15,6 +15,8 @@ This can be useful if you want to automate your Infrastructure and do not use [A
 
 An interactive CLI interface might be added later on.
 
+<img src="https://raw.githubusercontent.com/O-X-L/opnsense-api-client/refs/heads/latest/docs/source/_static/img/intro.gif" alt="Intro GIF" width="70%"/>
+
 ----
 
 ## Install

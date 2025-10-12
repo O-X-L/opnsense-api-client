@@ -1,6 +1,6 @@
 ---
 
-name: Functional-Tests Execution for PRs
+name: Functional-Tests
 
 on:
   push:
