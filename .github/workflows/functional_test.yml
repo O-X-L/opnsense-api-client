@@ -29,7 +29,6 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Test Connection
-        if: ${{ steps.modules_to_test.outputs.count != 0 }}
         run: |
           echo '10.0.0.1 ${{ vars.CI_TEST_FIREWALL_1 }}' | sudo tee -a /etc/hosts
           https_proxy=${{ secrets.CI_TEST_PROXY }} curl --fail-with-body https://${{ vars.CI_TEST_FIREWALL_1 }} --insecure > /tmp/test.html
@@ -42,14 +41,12 @@ jobs:
         shell: bash
 
       - name: Install requirements
-        if: ${{ steps.modules_to_test.outputs.count != 0 }}
         run: |
           pip install -r requirements.txt > /dev/null
           pip install -r requirements_test.txt > /dev/null
         shell: bash
 
       - name: Running Integration-Tests
-        if: ${{ steps.modules_to_test.outputs.count != 0 }}
         run: |
           echo "${{ secrets.CI_TEST_API_CREDENTIALS }}" > /tmp/api_credentials.txt
           chmod 600 /tmp/api_credentials.txt
