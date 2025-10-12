@@ -1,7 +1,7 @@
 from abc import ABC
 
 from basic.ansible import AnsibleModule
-from basic.ansible import ModuleArgumentSpecValidator
+from ansible.module_utils.common.arg_spec import ModuleArgumentSpecValidator
 
 from plugins.module_utils.base.handler import ModuleSoftError
 from plugins.module_utils.helper.main import diff_remove_empty
