@@ -23,7 +23,7 @@ dynamic = ["dependencies", "version"]
 
 [project.urls]
 Homepage = "https://www.OXL.at"
-Documentation = "https://github.com/O-X-L/opnsense-api-client"
+Documentation = "https://python-opnsense.oxl.app"
 Repository = "https://github.com/O-X-L/opnsense-api-client.git"
 Issues = "https://github.com/O-X-L/opnsense-api-client/issues"
 
