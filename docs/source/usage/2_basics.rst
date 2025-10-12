@@ -6,8 +6,8 @@
 2 - Basics
 ==========
 
-Basic Arguments
-###############
+Client Arguments
+################
 
 * **firewall** - string - required
 
@@ -193,3 +193,38 @@ The :code:`service` module can be used to manage services.
 
     c.run_module('service', params={'name': 'syslog', 'action': 'restart'})
     # {'error': None, 'result': {'changed': True, 'executed': 'restart'}}
+
+----
+
+Network Connection
+##################
+
+TLS Verification
+****************
+
+By default the TLS-connection to the firewall is verified!
+
+If your client does not trust the target certificate you will receive a :code:`ConnectError` with the message: :code:`CERTIFICATE_VERIFY_FAILED`.
+
+In a non-test environment you should **ALWAYS** verify that the TLS connection is valid!
+
+For testing-purposes you are able to manually disable it by setting :code:`ssl_verify` to False.
+
+Internal CA
+===========
+
+If you use an internal CA to sign your firewall-certificates you might have to specify the CA-file via :code:`ssl_ca_path`.
+
+----
+
+Bad Connections
+***************
+
+If the target firewall has a high-latency connection or the connection has some packet loss - you might want to increase the :code:`api_retries` and/or :code:`api_timeout`.
+
+----
+
+Forward Proxy
+*************
+
+If your target firewalls are only reachable over `a forward proxy like Squid <https://docs.o-x-l.com/proxy/forward_squid.html>`_ you can set the :code:`HTTPS_PROXY` environmental variable.

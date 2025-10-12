@@ -22,7 +22,7 @@ Sync from Upstream
 
 The script `update.sh <https://github.com/O-X-L/opnsense-api-client/blob/latest/scripts/update.sh>`_ is used to update the modules to the latest state of the upstream repository.
 
-We basically replaced the abstracted feature of the Ansible-framework the upstream code uses. (as we do only use basic features)
+We basically replaced the abstracted features of the Ansible-framework the upstream code uses. (as we do only use basic features)
 
 ----
 
