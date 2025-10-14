@@ -15,6 +15,10 @@ Features
 
 Module-implementations and module-specific features should be contributed to `the upstream repository <https://github.com/O-X-L/ansible-opnsense>`_!
 
+.. warning::
+
+    Do not make changes to :code:`src/oxl_opnsense_client/plugins/*` as they will be overwritten by 'scripts/update.sh' whenever we sync the plugins with the upstream-repository
+
 ----
 
 Sync from Upstream
