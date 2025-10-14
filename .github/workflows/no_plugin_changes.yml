@@ -1,0 +1,26 @@
+---
+
+name: Error on Plugin-changes
+
+on:
+  pull_request:
+    branches: [latest]
+    paths:
+      - 'src/oxl_opnsense_client/plugins/**'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: ERROR => DO NOT MAKE MANUAL CHANGES!
+        run: |
+          echo "ERROR: DO NOT MAKE MANUAL CHANGES!"
+          echo "Changes in 'src/oxl_opnsense_client/plugins/*' will be overwritten by 'scripts/update.sh' whenever we sync the plugins with the upstream-repository!"
+          echo "This error may be skipped/acknowledged by maintainers if the plugins were changed via 'scripts/update.sh'!"
+          exit 1
+        shell: bash
