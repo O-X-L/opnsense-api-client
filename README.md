@@ -49,6 +49,9 @@ Note: Only the [API-enabled](https://docs.opnsense.org/development/api.html) fun
 
 [Documentation](https://python-opnsense.oxl.app), [Ansible OPNsense-Collection Docs](https://ansible-opnsense.oxl.app/en/latest/usage/2_basic.html)
 
+[![Docs Uptime](https://status.oxl.at/api/v1/endpoints/1--oxl_opnsense-python-client-docs/uptimes/7d/badge.svg)](https://status.oxl.at/endpoints/1--oxl_opnsense-python-client-docs)
+
+
 ```python3
 from oxl_opnsense_client import Client
 
