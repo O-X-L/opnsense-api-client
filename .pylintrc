@@ -109,10 +109,6 @@ recursive=no
 # source root.
 source-roots=
 
-# When enabled, pylint would attempt to guess common misconfiguration and emit
-# user-friendly hints instead of false-positive error messages.
-suggestion-mode=yes
-
 # Allow loading of arbitrary C extensions. Extensions are imported into the
 # active Python interpreter and may run arbitrary code.
 unsafe-load-any-extension=no
@@ -178,6 +174,7 @@ disable=E0611, E0401,  # ansible modules will not be found
         R1735,  # dict=() formatting
         E1135, E1136,  # list-vars initialized as None
         W0201,  # ansible-modules
+        C0304,  # visual hints that are OK in upstream
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
