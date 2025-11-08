@@ -57,7 +57,7 @@ Client Arguments
 
   Number of retries on API requests, in case there is an error when establishing the connection.
 
-  This does not handle errors returned by the OPNSense system
+  This does not handle errors returned by the OPNsense system
 
 
 * **debug** - boolean - default false

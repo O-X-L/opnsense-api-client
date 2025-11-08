@@ -3,6 +3,7 @@ venv/
 .idea/
 .vscode/
 build/
+dist/
 
 .coverage
 .coverage.*
