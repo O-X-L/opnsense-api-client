@@ -51,8 +51,9 @@ def run_module(module_input):
                 'openvpn',
                 'dhcrelay',
                 'dhcp', 'kea',
-                'dnsmasq'
-
+                'dnsmasq',
+                'haproxy'
+                'wazuh',
             ],
             description='What part of the running config should be reloaded'
         ),
@@ -170,9 +171,17 @@ def run_module(module_input):
             from plugins.module_utils.main.dhcp_reservation_v4 import \
                 ReservationV4 as Target_Obj
 
+        elif target == 'wazuh':
+            from plugins.module_utils.main.wazuh_agent import \
+                WazuhAgent as Target_Obj
+
         elif target in ['dnsmasq']:
             from plugins.module_utils.main.dnsmasq_general import \
-                Dnsmasq as Target_Obj
+                General as Target_Obj
+
+        elif target in ['haproxy']:
+            from plugins.module_utils.main.haproxy_general_settings import \
+                HaproxyGeneralSettings as Target_Obj
 
     except MODULE_EXCEPTIONS:
         module_dependency_error()

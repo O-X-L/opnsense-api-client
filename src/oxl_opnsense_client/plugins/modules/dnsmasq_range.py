@@ -14,7 +14,7 @@ from plugins.module_utils.base.handler import \
 try:
     from plugins.module_utils.base.wrapper import module_wrapper
     from plugins.module_utils.defaults.main import \
-        OPN_MOD_ARGS, STATE_ONLY_MOD_ARG
+        OPN_MOD_ARGS, STATE_ONLY_MOD_ARG, RELOAD_MOD_ARG
     from plugins.module_utils.main.dnsmasq_range import Range
 
 except MODULE_EXCEPTIONS:
@@ -101,6 +101,7 @@ def run_module(module_input):
             description='Lifetime of the route.',
         ),
         **STATE_ONLY_MOD_ARG,
+        **RELOAD_MOD_ARG,
         **OPN_MOD_ARGS,
     )
 
