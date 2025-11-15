@@ -1,5 +1,13 @@
 # OPNsense API Client
 
+<p align="center">
+    <a title="Support this Project (Donate, Support-Licenses)" href="https://shop.oxl.app/collections/open-source">
+        <img src="https://files.oxl.at/img/badge-oss-support.svg" alt="Support Badge (Donate, Support-Licenses)"/>
+    </a>
+</p>
+
+----
+
 [![Lint](https://github.com/O-X-L/opnsense-api-client/actions/workflows/lint.yml/badge.svg)](https://github.com/O-X-L/opnsense-api-client/actions/workflows/lint.yml)
 [![Unit Test](https://github.com/O-X-L/opnsense-api-client/actions/workflows/unit_test.yml/badge.svg)](https://github.com/O-X-L/opnsense-api-client/actions/workflows/unit_test.yml)
 [![Functional Test](https://github.com/O-X-L/opnsense-api-client/actions/workflows/functional_test.yml/badge.svg)](https://github.com/O-X-L/opnsense-api-client/actions/workflows/functional_test.yml)
