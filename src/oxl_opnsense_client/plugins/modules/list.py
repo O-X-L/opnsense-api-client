@@ -46,7 +46,8 @@ TARGETS = [
     'dnsmasq_general', 'ipsec_general', 'dnsmasq_domain', 'dnsmasq_host', 'dnsmasq_range', 'dnsmasq_option',
     'dnsmasq_boot', 'dnsmasq_tag', 'haproxy_general_settings', 'haproxy_general_cache', 'haproxy_general_defaults',
     'haproxy_general_logging', 'haproxy_general_peers', 'haproxy_general_stats', 'haproxy_general_tuning',
-    'haproxy_maintenance', 'haproxy_cpu', 'haproxy_user', 'haproxy_group', 'wazuh_agent',
+    'haproxy_maintenance', 'haproxy_cpu', 'haproxy_user', 'haproxy_group', 'haproxy_acl', 'haproxy_action',
+    'haproxy_lua', 'haproxy_fcgi', 'haproxy_errorfile', 'wazuh_agent',
 ]
 
 
@@ -625,6 +626,26 @@ def run_module(module_input):
         elif target == 'haproxy_group':
             from plugins.module_utils.main.haproxy_group import \
                 HaproxyGroup as Target_Obj
+
+        elif target == 'haproxy_acl':
+            from plugins.module_utils.main.haproxy_acl import \
+                HaproxyAcl as Target_Obj
+
+        elif target == 'haproxy_action':
+            from plugins.module_utils.main.haproxy_action import \
+                HaproxyAction as Target_Obj
+
+        elif target == 'haproxy_lua':
+            from plugins.module_utils.main.haproxy_lua import \
+                HaproxyLua as Target_Obj
+
+        elif target == 'haproxy_fcgi':
+            from plugins.module_utils.main.haproxy_fcgi import \
+                HaproxyFcgi as Target_Obj
+
+        elif target == 'haproxy_errorfile':
+            from plugins.module_utils.main.haproxy_errorfile import \
+                HaproxyErrorfile as Target_Obj
 
     except AttributeError:
         module_dependency_error()
