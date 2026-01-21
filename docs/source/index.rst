@@ -10,3 +10,10 @@ Index
    :maxdepth: 1
 
    usage/*
+
+.. toctree::
+   :caption: Legal
+   :glob:
+   :maxdepth: 1
+
+   legal/*
