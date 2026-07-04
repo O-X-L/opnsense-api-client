@@ -2,7 +2,7 @@ from basic.ansible import AnsibleModule
 
 from plugins.module_utils.base.api import \
     Session
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class Rule(BaseModule):
@@ -42,13 +42,13 @@ class Rule(BaseModule):
         self.exists = False
 
     def check(self):
-        self._search_call()
-        self.r['diff']['after'] = self.b.build_diff(data=self.p)
+        self.search_call()
+        self.r['diff']['after'] = self.build_diff(data=self.p)
 
     def get_existing(self) -> list:
-        return self._search_call()
+        return self.search_call()
 
-    def _search_call(self) -> list:
+    def search_call(self) -> list:
         existing = self.s.post(cnf={
             **self.call_cnf,
             'command': self.CMDS['search'],
@@ -60,7 +60,7 @@ class Rule(BaseModule):
                 if rule[self.FIELD_ID] == self.p[self.FIELD_ID]:
                     self.exists = True
                     self.call_cnf['params'] = [rule['uuid']]
-                    self.rule = self.b.simplify_existing(
+                    self.rule = self.simplify_existing(
                         self.s.get(cnf={
                             **self.call_cnf,
                             'command': self.CMDS['detail'],

@@ -1,10 +1,12 @@
 from basic.ansible import AnsibleModule
 
 from plugins.module_utils.helper.main import \
-    is_unset, get_key_by_value_from_selection
+    is_unset
+from plugins.module_utils.helper.translate import \
+    get_key_by_value_from_selection
 from plugins.module_utils.base.api import \
     Session
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class User(BaseModule):
@@ -57,7 +59,7 @@ class User(BaseModule):
         if not is_unset(self.p['membership']) or self.p['membership'] == []:
             self.FIELDS_CHANGE = self.FIELDS_CHANGE + ['membership']
             self.p['membership'] = [
-                get_key_by_value_from_selection(self.b.raw['group_memberships'], g)
+                get_key_by_value_from_selection(self.raw['group_memberships'], g)
                 for g in self.p['membership']
             ]
         if not is_unset(self.p['privilege']) or self.p['privilege'] == []:
@@ -66,12 +68,14 @@ class User(BaseModule):
     def create(self) -> None:
         if is_unset(self.p['password']) and is_unset(self.p['scrambled_password']):
             self.p['scrambled_password'] = True
-        self.b.create()
+
+        self._base_create()
 
     def update(self) -> None:
-        self.b.update(enable_switch=False)
+        self._base_update(enable_switch=False)
 
     def delete(self) -> None:
         if self.user['scope'] == 'system':
             self.m.fail_json(f"Not allowed to delete system user {self.user['name']}")
-        self.b.delete()
+
+        self._base_delete()

@@ -1,7 +1,7 @@
 from basic.ansible import AnsibleModule
 
 from plugins.module_utils.base.api import Session
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 from plugins.module_utils.helper.validate import is_unset
 
 
@@ -68,7 +68,7 @@ class HaproxyAcl(BaseModule):
                 'src_http_req_cnt', 'src_http_req_rate', 'src_kbytes_in', 'src_kbytes_out',
                 'src_sess_cnt', 'src_sess_rate'],
         'list': ['allowed_users', 'allowed_groups'],
-        'select': ['expression', 'ssl_hello_type', 'nbsrv_backend', 'src_port_comparison', 
+        'select': ['expression', 'ssl_hello_type', 'nbsrv_backend', 'src_port_comparison',
                    'src_bytes_in_rate_comparison', 'src_bytes_out_rate_comparison', 'src_conn_cnt_comparison',
                    'src_conn_cur_comparison', 'src_conn_rate_comparison', 'src_http_err_cnt_comparison',
                    'src_http_err_rate_comparison', 'src_http_req_cnt_comparison', 'src_http_req_rate_comparison',
@@ -82,12 +82,10 @@ class HaproxyAcl(BaseModule):
         'name': r'^[^\t^,^;^\.^\[^\]^\{^\}]{1,255}$',
     }
 
-    ### TODO : Uncomment backends when implemented
-
     SEARCH_ADDITIONAL = {
         'existing_users': 'haproxy.users.user',
         'existing_groups': 'haproxy.groups.group',
-        # 'existing_backends': 'haproxy.backends.backend',
+        'existing_backends': 'haproxy.backends.backend',
     }
 
     TIMEOUT = 60.0
@@ -97,7 +95,7 @@ class HaproxyAcl(BaseModule):
         self.haproxy_acl = {}
         self.existing_users = {}
         self.existing_groups = {}
-        # self.existing_backends = {}
+        self.existing_backends = {}
 
     def check(self) -> None:
         self._base_check()
@@ -107,20 +105,20 @@ class HaproxyAcl(BaseModule):
                 self.m.fail_json("You need to provide an 'expression' to create an ACL!")
 
             if self.p.get('allowed_users'):
-                self.b.find_multiple_links(
+                self.find_multiple_links(
                     field='allowed_users',
                     existing=self.existing_users,
                     existing_field_id='name',
                 )
             if self.p.get('allowed_groups'):
-                self.b.find_multiple_links(
+                self.find_multiple_links(
                     field='allowed_groups',
                     existing=self.existing_groups,
                     existing_field_id='name',
                 )
-            # if self.p.get('nbsrv_backend'):
-            #     self.b.find_single_link(
-            #         field='nbsrv_backend',
-            #         existing=self.existing_backends,
-            #         existing_field_id='name',
-            #     )
+            if self.p.get('nbsrv_backend'):
+                self.find_single_link(
+                    field='nbsrv_backend',
+                    existing=self.existing_backends,
+                    existing_field_id='name',
+                )

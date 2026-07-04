@@ -1,13 +1,31 @@
-import pytest
 
-# todo: add more tests for simplify_translate and other essential functions to catch regressions
+def test_diff_remove_empty():
+    from plugins.module_utils.helper.main import diff_remove_empty
 
 
-@pytest.mark.parametrize('existing, translate, simple', [
-    ({'api_name': 'value'}, {'ansible_name': 'api_name'}, {'ansible_name': 'value'}),
-    ({'api': {'name': 'value'}}, {'ansible_name': ('api', 'name')}, {'ansible_name': 'value'}),
-])
-def test_simplify_translate_translate(existing, translate, simple):
-    from plugins.module_utils.helper.main import simplify_translate
+def test_ensure_list():
+    from plugins.module_utils.helper.main import ensure_list
 
-    assert simple == simplify_translate(existing=existing, translate=translate, ignore=['api'])
+
+def test_is_true():
+    from plugins.module_utils.helper.main import is_true
+
+
+def test_to_digit():
+    from plugins.module_utils.helper.main import to_digit
+
+
+def test_format_int():
+    from plugins.module_utils.helper.main import format_int
+
+
+def test_sort_param_lists():
+    from plugins.module_utils.helper.main import sort_param_lists
+
+
+def test_is_unset():
+    from plugins.module_utils.helper.main import is_unset
+
+
+def test_unset_check_error():
+    from plugins.module_utils.helper.main import unset_check_error

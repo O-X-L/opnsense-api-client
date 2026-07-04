@@ -2,11 +2,11 @@ from basic.ansible import AnsibleModule
 
 from plugins.module_utils.base.api import \
     Session
-from plugins.module_utils.helper.main import \
-    get_key_by_value_from_selection, get_key_by_value_end_from_selection
+from plugins.module_utils.helper.translate import \
+    get_key_by_value_from_selection, get_key_by_value_beg_from_selection, get_key_by_value_end_from_selection
 from plugins.module_utils.helper.validate import \
     is_unset
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class Server(BaseModule):
@@ -117,37 +117,48 @@ class Server(BaseModule):
                     "You need to either provide a 'certificate' or 'ca' to create an openvpn-server!"
                 )
 
-
         self._base_check()
 
         if not is_unset(self.p['ca']):
             self.p['ca'] = get_key_by_value_from_selection(
-                selection=self.b.raw['ca'],
+                selection=self.raw['ca'],
                 value=self.p['ca'],
             )
 
         if not is_unset(self.p['certificate']):
             self.p['certificate'] = get_key_by_value_from_selection(
-                selection=self.b.raw[self.FIELDS_TRANSLATE['certificate']],
+                selection=self.raw[self.FIELDS_TRANSLATE['certificate']],
                 value=self.p['certificate'],
             )
 
         if not is_unset(self.p['crl']):
             self.p['crl'] = get_key_by_value_from_selection(
-                selection=self.b.raw[self.FIELDS_TRANSLATE['crl']],
+                selection=self.raw[self.FIELDS_TRANSLATE['crl']],
                 value=self.p['crl'],
             )
 
         if not is_unset(self.p['key']):
-            self.p['key'] = get_key_by_value_end_from_selection(
-                selection=self.b.raw[self.FIELDS_TRANSLATE['key']],
+            # checking beginning or end because select-value changed (WebUI priority)
+            #   see: https://github.com/O-X-L/ansible-opnsense/issues/381
+            key_id = get_key_by_value_beg_from_selection(
+                selection=self.raw[self.FIELDS_TRANSLATE['key']],
                 value=self.p['key'],
             )
+            if key_id is not None:
+                self.p['key'] = key_id
+
+            else:
+                key_id = get_key_by_value_end_from_selection(
+                    selection=self.raw[self.FIELDS_TRANSLATE['key']],
+                    value=self.p['key'],
+                )
+                if key_id is not None:
+                    self.p['key'] = key_id
 
         if self.p['state'] == 'present':
             if 'before' in self.r['diff'] and 'mode' in self.r['diff']['before']:
                 self.r['diff']['before']['mode'] = self.r['diff']['before']['mode'].lower()
                 self.instance['mode'] = self.r['diff']['before']['mode']
 
-            self.r['diff']['after'] = self.b.build_diff(data=self.p)
+            self.r['diff']['after'] = self.build_diff(data=self.p)
             self.r['changed'] = self.r['diff']['before'] != self.r['diff']['after']

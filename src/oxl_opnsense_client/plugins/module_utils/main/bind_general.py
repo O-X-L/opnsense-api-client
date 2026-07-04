@@ -2,11 +2,11 @@ from basic.ansible import AnsibleModule
 
 from plugins.module_utils.base.api import \
     Session
-from plugins.module_utils.helper.main import \
+from plugins.module_utils.helper.translate import \
     simplify_translate
 from plugins.module_utils.helper.validate import \
     is_ip, is_unset
-from plugins.module_utils.base.cls import GeneralModule
+from plugins.module_utils.base.module import GeneralModule
 
 
 class General(GeneralModule):
@@ -110,15 +110,15 @@ class General(GeneralModule):
         self.settings = self.get_existing()
 
         if self.acls_needed:
-            self.b.find_multiple_links(
+            self.find_multiple_links(
                 field='recursion_acl',
                 existing=self.existing_acls,
             )
-            self.b.find_multiple_links(
+            self.find_multiple_links(
                 field='transfer_acl',
                 existing=self.existing_acls,
             )
-            self.b.find_multiple_links(
+            self.find_multiple_links(
                 field='query_acl',
                 existing=self.existing_acls,
             )

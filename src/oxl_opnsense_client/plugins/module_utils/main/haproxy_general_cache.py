@@ -1,7 +1,7 @@
 from basic.ansible import AnsibleModule
 
 from plugins.module_utils.base.api import Session
-from plugins.module_utils.base.cls import GeneralModule
+from plugins.module_utils.base.module import GeneralModule
 
 
 class HaproxyGeneralCache(GeneralModule):

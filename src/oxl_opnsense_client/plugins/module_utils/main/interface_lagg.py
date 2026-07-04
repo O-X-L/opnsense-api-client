@@ -4,7 +4,7 @@ from plugins.module_utils.base.api import \
     Session
 from plugins.module_utils.helper.validate import \
     is_unset
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class Lagg(BaseModule):
@@ -53,4 +53,4 @@ class Lagg(BaseModule):
         self._base_check()
 
     def update(self) -> None:
-        self.b.update(enable_switch=False)
+        self._base_update(enable_switch=False)

@@ -13,7 +13,7 @@ from plugins.module_utils.helper.validate import is_ip6
 DEFAULT_TIMEOUT = 20.0
 HTTPX_EXCEPTIONS = (
     httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout, httpx.WriteTimeout,
-    httpx.TimeoutException, httpx.PoolTimeout,
+    httpx.TimeoutException, httpx.PoolTimeout, httpx.RemoteProtocolError,
 )
 
 

@@ -6,7 +6,7 @@ from plugins.module_utils.helper.validate import \
     is_unset, is_ip6_network
 from plugins.module_utils.helper.unbound import \
     validate_domain
-from plugins.module_utils.base.cls import GeneralModule
+from plugins.module_utils.base.module import GeneralModule
 
 
 # Supported as of OPNsense 23.7
@@ -79,7 +79,7 @@ class General(GeneralModule):
         if not is_ip6_network(self.p['dns64_prefix']):
             self.m.fail_json(f"Value '{self.p['dns64_prefix']}' is an invalid IPv6 network!")
 
-        self.settings = self._search_call()
+        self.settings = self.search_call()
 
         if not is_unset(self.p['interfaces']):
             if len(self.existing_active_interfaces) == 0:

@@ -6,7 +6,7 @@ from plugins.module_utils.helper.main import \
     is_unset
 from plugins.module_utils.helper.validate import \
     is_ip
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class Pool(BaseModule):

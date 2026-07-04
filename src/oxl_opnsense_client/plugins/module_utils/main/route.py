@@ -2,11 +2,11 @@ from ipaddress import ip_network
 
 from basic.ansible import AnsibleModule
 
-from plugins.module_utils.helper.main import \
+from plugins.module_utils.helper.translate import \
     simplify_translate
 from plugins.module_utils.base.api import \
     Session
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class Route(BaseModule):
@@ -24,10 +24,8 @@ class Route(BaseModule):
     FIELDS_CHANGE = ['network', 'gateway', 'description']
     FIELDS_ALL = ['enabled']
     FIELDS_ALL.extend(FIELDS_CHANGE)
-    FIELDS_BOOL_INVERT = ['enabled']
     FIELDS_TRANSLATE = {
         'description': 'descr',
-        'enabled': 'disabled',
     }
     FIELDS_TYPING = {
         'bool': ['enabled'],
@@ -48,12 +46,11 @@ class Route(BaseModule):
 
         self._base_check()
 
-    def _simplify_existing(self, route: dict) -> dict:
+    def simplify_existing(self, route: dict) -> dict:
         simple = simplify_translate(
             existing=route,
             typing=self.FIELDS_TYPING,
             translate=self.FIELDS_TRANSLATE,
-            bool_invert=self.FIELDS_BOOL_INVERT,
         )
         if simple['gateway'].find(' - ') != -1:
             simple['gateway'] = simple['gateway'].rsplit('-', 1)[0].strip()

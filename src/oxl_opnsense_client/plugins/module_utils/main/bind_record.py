@@ -4,11 +4,11 @@ from plugins.module_utils.base.handler import \
     ModuleSoftError
 from plugins.module_utils.base.api import \
     Session
-from plugins.module_utils.helper.main import \
+from plugins.module_utils.helper.match import \
     get_multiple_matching
 from plugins.module_utils.helper.validate import \
     is_ip4, is_ip6, is_unset
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 from plugins.module_utils.main.bind_domain import Domain
 
 
@@ -97,7 +97,7 @@ class Record(BaseModule):
             self.existing = get_multiple_matching(
                 module=self.m, existing_items=self.existing_entries,
                 compare_item=self.p, match_fields=self.p['match_fields'],
-                simplify_func=self.b.simplify_existing,
+                simplify_func=self.simplify_existing,
             )
 
             self.exists_rr = len(self.existing) > 1
@@ -114,12 +114,12 @@ class Record(BaseModule):
 
         self._base_check()
 
-    def _search_call(self) -> list:
+    def search_call(self) -> list:
         self.search_call_domains()
 
         existing = []
         for uuid in self.existing_domains:
-            existing.extend(self.b.api_search_post(
+            existing.extend(self.api_search_post(
                 cnf={
                     'module': self.API_MOD,
                     'controller': self.API_CONT,
@@ -189,7 +189,7 @@ class Record(BaseModule):
 
         else:
             # single record
-            self.b.process()
+            self._base_process()
 
     def _exists_rr(self) -> bool:
         # check if exact same record already exists if using round-robin
@@ -215,7 +215,7 @@ class Record(BaseModule):
             _before[_key(item=e, idx=_idx)] = e
             _idx += 1
 
-        _new = self.b.build_diff(data=self.p)
+        _new = self.build_diff(data=self.p)
         _after[_key(item=_new, idx=_idx)] = _new
 
         self.r['diff']['after'] = {**_before, **_after}

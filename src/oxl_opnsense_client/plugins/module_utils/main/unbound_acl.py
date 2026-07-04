@@ -4,7 +4,7 @@ from plugins.module_utils.base.api import \
     Session
 from plugins.module_utils.helper.validate import \
     is_ip_or_network, is_unset
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class Acl(BaseModule):

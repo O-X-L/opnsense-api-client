@@ -1,10 +1,10 @@
 from basic.ansible import AnsibleModule
 
-from plugins.module_utils.helper.main import \
+from plugins.module_utils.helper.translate import \
     get_key_by_value_from_selection
 from plugins.module_utils.base.api import \
     Session
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class Privilege(BaseModule):
@@ -39,11 +39,11 @@ class Privilege(BaseModule):
             self.m.fail_json(f"Privilege {self.p['id']} not found")
 
         self.p['user'] = [
-            get_key_by_value_from_selection(self.b.raw['users'], u)
+            get_key_by_value_from_selection(self.raw['users'], u)
             for u in self.p['user']
         ]
         self.p['group'] = [
-            get_key_by_value_from_selection(self.b.raw['groups'], g)
+            get_key_by_value_from_selection(self.raw['groups'], g)
             for g in self.p['group']
         ]
 

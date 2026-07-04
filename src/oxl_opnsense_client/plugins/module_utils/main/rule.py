@@ -7,7 +7,7 @@ from plugins.module_utils.helper.validate import \
 from plugins.module_utils.base.api import Session
 from plugins.module_utils.helper.rule import \
     validate_values
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class Rule(BaseModule):
@@ -31,6 +31,7 @@ class Rule(BaseModule):
         'max_states', 'max_src_nodes', 'max_src_states', 'max_src_conn', 'max_src_conn_rate',
         'max_src_conn_rates', 'overload', 'adaptive_start', 'adaptive_end', 'prio', 'set_prio', 'set_prio_low',
         'tcp_flags', 'tcp_flags_clear', 'schedule', 'tos', 'icmp_type',
+        'divert_to', 'shaper1', 'shaper2',
     ]
     FIELDS_ALL = ['enabled']
     FIELDS_ALL.extend(FIELDS_CHANGE)
@@ -58,6 +59,8 @@ class Rule(BaseModule):
         'tcp_flags_clear': 'tcpflags2',
         'schedule': 'sched',
         'icmp_type': 'icmptype',
+        'icmpv6_type': 'icmp6type',
+        'divert_to': 'divert-to',
     }
     FIELDS_TYPING = {
         'bool': [
@@ -67,10 +70,12 @@ class Rule(BaseModule):
         'select': [
             'action', 'direction', 'ip_protocol', 'protocol', 'gateway', 'replyto', 'state_type', 'state_policy',
             'overload', 'prio', 'set_prio', 'set_prio_low', 'schedule', 'tos',
+            'divert_to', 'shaper1', 'shaper2',
         ],
-        'list': ['interface', 'tcp_flags', 'tcp_flags_clear', 'icmp_type'],
+        'list': ['interface', 'tcp_flags', 'tcp_flags_clear', 'icmp_type', 'icmpv6_type'],
         'int': ['sequence', 'state_timeout'],
     }
+    FIELDS_OPTIONAL = ['icmp_type', 'icmpv6_type']
     EXIST_ATTR = 'rule'
     TIMEOUT = 60.0  # urltable etc reload
     INT_VALIDATIONS = {
@@ -116,7 +121,7 @@ class Rule(BaseModule):
             )
 
         self._build_log_name()
-        self.b.find(match_fields=self.p['match_fields'])
+        self.find(match_fields=self.p['match_fields'])
 
         if self.p['state'] == 'present':
             validate_values(module=self.m, cnf=self.p, error_func=self._error)

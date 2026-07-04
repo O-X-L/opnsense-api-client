@@ -4,7 +4,7 @@ from plugins.module_utils.base.api import \
     Session
 from plugins.module_utils.helper.validate import \
     is_unset
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class Pipe(BaseModule):
@@ -64,4 +64,4 @@ class Pipe(BaseModule):
         if self.p['reset']:
             self.API_CMD_REL = 'flushreload'
 
-        self.b.reload()
+        self._base_reload()

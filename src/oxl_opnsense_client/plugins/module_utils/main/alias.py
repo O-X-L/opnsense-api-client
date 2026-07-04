@@ -7,8 +7,10 @@ from plugins.module_utils.base.api import \
 from plugins.module_utils.helper.alias import \
     validate_values, filter_builtin_alias, build_updatefreq
 from plugins.module_utils.helper.main import \
-    get_simple_existing, simplify_translate, is_unset
-from plugins.module_utils.base.cls import BaseModule
+    is_unset
+from plugins.module_utils.helper.translate import \
+    get_simple_existing, simplify_translate
+from plugins.module_utils.base.module import BaseModule
 
 
 class Alias(BaseModule):
@@ -26,9 +28,16 @@ class Alias(BaseModule):
     FIELDS_CHANGE = ['content', 'description']
     FIELDS_ALL = ['name', 'type', 'enabled']
     FIELDS_ALL.extend(FIELDS_CHANGE)
-    FIELDS_ALL.extend(['updatefreq_days', 'interface', 'path_expression'])
+    FIELDS_ALL.extend([
+        'updatefreq_days', 'interface', 'path_expression',
+        'url_auth_type', 'url_username', 'url_password',
+    ])
+    FIELDS_DIFF_NO_LOG = ['url_password']
     FIELDS_TRANSLATE = {
         'updatefreq_days': 'updatefreq',
+        'url_auth_type': 'authtype',
+        'url_username': 'username',
+        'url_password': 'password',
     }
     FIELDS_TYPING = {
         'bool': ['enabled'],
@@ -51,11 +60,11 @@ class Alias(BaseModule):
             self.FIELDS_CHANGE = self.FIELDS_CHANGE + ['updatefreq_days']
             self.p['updatefreq_days'] = build_updatefreq(self.p['updatefreq_days'], default=True)
 
-        if self.p['type'] == 'urljson':
+        elif self.p['type'] == 'urljson':
             self.FIELDS_CHANGE = self.FIELDS_CHANGE + ['updatefreq_days', 'path_expression']
             self.p['updatefreq_days'] = build_updatefreq(self.p['updatefreq_days'], default=True)
 
-        if self.p['type'] == 'dynipv6host':
+        elif self.p['type'] == 'dynipv6host':
             if is_unset(self.p['interface']):
                 self.m.fail_json('You need to provide an interface to create a dynipv6host alias!')
 
@@ -67,7 +76,7 @@ class Alias(BaseModule):
                 f"must be shorter than {self.MAX_ALIAS_LEN} characters",
             )
 
-        self.b.find(match_fields=[self.FIELD_ID])
+        self.find(match_fields=[self.FIELD_ID])
 
         if self.p['state'] == 'present':
             validate_values(error_func=self._error, cnf=self.p, existing_entries=self.existing_entries)
@@ -101,7 +110,7 @@ class Alias(BaseModule):
     def update(self) -> None:
         # checking if alias changed
         if self.alias['type'] == self.p['type']:
-            self.b.update()
+            self._base_update()
 
         else:
             self.r['changed'] = True
@@ -112,7 +121,7 @@ class Alias(BaseModule):
             )
 
     def delete(self) -> None:
-        response = self.b.delete()
+        response = self._base_delete()
 
         if 'in_use' in response:
             self._error(
@@ -131,7 +140,7 @@ class Alias(BaseModule):
     def get_existing(self) -> list:
         return filter_builtin_alias(
             get_simple_existing(
-                entries=self.b.search(),
+                entries=self.search(),
                 simplify_func=self.simplify_existing,
             )
         )

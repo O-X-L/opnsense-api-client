@@ -6,7 +6,7 @@ from plugins.module_utils.helper.unbound import \
     validate_domain
 from plugins.module_utils.helper.validate import \
     is_true, is_unset
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class Forward(BaseModule):
@@ -48,12 +48,12 @@ class Forward(BaseModule):
         if not is_unset(self.p['domain']):
             validate_domain(module=self.m, domain=self.p['domain'])
 
-        self.b.find(match_fields=['domain', 'target'])
+        self.find(match_fields=['domain', 'target'])
         self._base_check()
 
-    def _search_call(self) -> list:
+    def search_call(self) -> list:
         fwds = []
-        raw = self.b.search()
+        raw = self.search()
 
         if len(raw) > 0:
             for uuid, dot in raw.items():

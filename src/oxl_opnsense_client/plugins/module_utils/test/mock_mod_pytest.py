@@ -4,7 +4,7 @@ from plugins.module_utils.helper.main import \
     is_unset
 from plugins.module_utils.base.api import \
     Session
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 from plugins.module_utils.defaults.main import \
     OPN_MOD_ARGS, STATE_MOD_ARG, RELOAD_MOD_ARG
 

@@ -3,8 +3,10 @@ from basic.ansible import AnsibleModule
 from plugins.module_utils.base.api import \
     Session
 from plugins.module_utils.helper.main import \
-    is_unset, get_key_by_value_beg_from_selection
-from plugins.module_utils.base.cls import BaseModule
+    is_unset
+from plugins.module_utils.helper.translate import \
+    get_key_by_value_beg_from_selection
+from plugins.module_utils.base.module import BaseModule
 
 
 class Override(BaseModule):
@@ -43,6 +45,7 @@ class Override(BaseModule):
             'servers', 'redirect_gateway', 'network_local', 'network_remote', 'domain_list',
             'dns_servers', 'ntp_servers', 'wins_servers',
         ],
+        'select': ['domain'],
     }
     EXIST_ATTR = 'override'
 
@@ -61,7 +64,7 @@ class Override(BaseModule):
             servers = []
             for server in self.p['servers']:
                 servers.append(get_key_by_value_beg_from_selection(
-                    selection=self.b.raw['servers'],
+                    selection=self.raw['servers'],
                     value=server,
                 ))
 

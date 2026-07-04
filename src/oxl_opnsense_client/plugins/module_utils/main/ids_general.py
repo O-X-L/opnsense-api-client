@@ -2,8 +2,8 @@ from basic.ansible import AnsibleModule
 
 from plugins.module_utils.base.api import \
     Session
-from plugins.module_utils.base.cls import GeneralModule
-from plugins.module_utils.helper.main import \
+from plugins.module_utils.base.module import GeneralModule
+from plugins.module_utils.helper.translate import \
     get_selected, get_key_by_value_from_selection
 from plugins.module_utils.helper.validate import \
     is_ip_or_network, is_unset
@@ -21,13 +21,12 @@ class General(GeneralModule):
     API_CONT = 'settings'
     API_CONT_REL = 'service'
     FIELDS_CHANGE = [
-        'block', 'promiscuous', 'enabled', 'interfaces', 'pattern_matcher', 'local_networks', 'default_packet_size',
+        'mode', 'promiscuous', 'enabled', 'interfaces', 'pattern_matcher', 'local_networks', 'default_packet_size',
         'syslog_alerts', 'syslog_output', 'log_level', 'log_rotate', 'log_retention', 'log_payload',
-        'profile', 'profile_toclient_groups', 'profile_toserver_groups', 'schedule',
+        'profile', 'profile_toclient_groups', 'profile_toserver_groups', 'schedule', 'divert_listeners',
     ]
     FIELDS_ALL = FIELDS_CHANGE
     FIELDS_TRANSLATE = {
-        'block': 'ips',
         'promiscuous': 'promisc',
         'syslog_alerts': 'syslog',
         'syslog_output': 'syslog_eve',
@@ -46,10 +45,10 @@ class General(GeneralModule):
         'profile_toserver_groups': 'toserver_groups',
     }
     FIELDS_TYPING = {
-        'bool': ['enabled', 'block', 'promiscuous', 'syslog_alerts', 'syslog_output', 'log_payload'],
-        'int': ['default_packet_size', 'log_retention'],
+        'bool': ['enabled', 'promiscuous', 'syslog_alerts', 'syslog_output', 'log_payload'],
+        'int': ['default_packet_size', 'log_retention', 'divert_listeners'],
         'list': ['local_networks', 'interfaces'],
-        'select': ['log_level', 'pattern_matcher', 'log_rotate', 'schedule'],
+        'select': ['log_level', 'pattern_matcher', 'log_rotate', 'schedule', 'mode'],
     }
     FIELDS_IGNORE = ['detect']
     INT_VALIDATIONS = {
@@ -57,6 +56,7 @@ class General(GeneralModule):
         'profile_toclient_groups': {'min': 1, 'max': 65535},
         'profile_toserver_groups': {'min': 1, 'max': 65535},
         'default_packet_size': {'min': 82, 'max': 65535},
+        'divert_listeners': {'min': 1, 'max': 255},
     }
     FIELDS_VALUE_MAPPING = {
         'log_rotate': {
@@ -94,12 +94,12 @@ class General(GeneralModule):
 
         self._base_check()
 
-    def _search_call(self) -> dict:
+    def search_call(self) -> dict:
         settings = self.s.get(cnf={
             **self.call_cnf, **{'command': self.CMDS['search']}
         })[self.API_KEY_1][self.API_KEY]
 
-        simple = self.b.simplify_existing(settings)
+        simple = self.simplify_existing(settings)
 
         try:
             # resolve schedule/cron name to uuid
@@ -124,8 +124,8 @@ class General(GeneralModule):
 
         return simple
 
-    def _build_request(self) -> dict:
-        raw_request = self.b.build_request(
+    def build_request(self) -> dict:
+        raw_request = self._base_build_request(
             ignore_fields=['profile', 'profile_toclient_groups', 'profile_toserver_groups']
         )
         raw_request[self.API_KEY]['detect'] = {

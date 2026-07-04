@@ -2,7 +2,7 @@ from basic.ansible import AnsibleModule
 
 from plugins.module_utils.base.api import \
     Session
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 from plugins.module_utils.helper.main import \
     is_true, to_digit
 
@@ -38,21 +38,21 @@ class Ruleset(BaseModule):
         self.existing_rulesets_desc = []
 
     def check(self) -> None:
-        self._search_call()
+        self.search_call()
         if not self.exists:
             self.m.fail_json(
                 f"The provided ruleset '{self.p[self.FIELD_ID]}' was not found! "
                 f"Available ones are: '{self.existing_rulesets_desc}'"
             )
 
-        self.r['diff']['after'] = self.b.build_diff(data=self.p)
+        self.r['diff']['after'] = self.build_diff(data=self.p)
         self.r['changed'] = self.r['diff']['before'] != self.r['diff']['after']
 
     def process(self) -> None:
         if self.r['changed']:
             self.toggle()
 
-    def _search_call(self) -> list:
+    def search_call(self) -> list:
         # NOTE: workaround for issue with incomplete response-data from 'get' endpoint:
         #   https://github.com/opnsense/core/issues/7094
         existing = self.s.post(cnf={

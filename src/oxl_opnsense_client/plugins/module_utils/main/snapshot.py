@@ -2,7 +2,7 @@ from basic.ansible import AnsibleModule
 
 from plugins.module_utils.base.api import \
     Session
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class Snapshot(BaseModule):
@@ -13,7 +13,7 @@ class Snapshot(BaseModule):
         'search': 'search',
         'activate': 'activate',
     }
-    API_KEY_PATH = None
+    API_KEY_PATH = ''
     API_MOD = 'core'
     API_CONT = 'snapshots'
     FIELDS_CHANGE = []
@@ -31,7 +31,7 @@ class Snapshot(BaseModule):
         if self.p['activate'] and 'active' in self.snapshot and 'R' not in self.snapshot['active']:
             self.activate()
 
-    def _search_call(self) -> dict:
+    def search_call(self) -> dict:
         return self.s.get(cnf={
             **self.call_cnf,
             'command': self.CMDS['search'],
@@ -54,6 +54,8 @@ class Snapshot(BaseModule):
                 self._ensure_zfs(resp)
                 self.m.fail_json(f"Failed creating snapshot '{self.p['name']}'")
 
+        return {}
+
     def update(self) -> dict:
         pass
 
@@ -69,3 +71,5 @@ class Snapshot(BaseModule):
             if resp['status'] != 'ok':
                 self._ensure_zfs(resp)
                 self.m.fail_json(f"Failed activating snapshot '{self.p['name']}'")
+
+        return {}

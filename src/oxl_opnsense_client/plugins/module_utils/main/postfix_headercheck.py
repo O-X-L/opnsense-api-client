@@ -2,7 +2,7 @@ from basic.ansible import AnsibleModule
 
 from plugins.module_utils.base.api import \
     Session
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class Headercheck(BaseModule):
@@ -32,4 +32,4 @@ class Headercheck(BaseModule):
         self.headercheck = {}
 
     def check(self) -> None:
-        self.b.find(match_fields=['expression', 'filter'])
+        self.find(match_fields=['expression', 'filter'])

@@ -4,7 +4,7 @@ from plugins.module_utils.base.api import \
     Session
 from plugins.module_utils.helper.validate import \
     is_ip
-from plugins.module_utils.base.cls import GeneralModule
+from plugins.module_utils.base.module import GeneralModule
 
 
 class ControlAgent(GeneralModule):

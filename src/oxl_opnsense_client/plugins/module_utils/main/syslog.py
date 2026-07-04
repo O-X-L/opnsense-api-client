@@ -6,7 +6,7 @@ from plugins.module_utils.base.api import \
     Session
 from plugins.module_utils.helper.validate import \
     is_ip, is_unset, is_valid_domain
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class Syslog(BaseModule):

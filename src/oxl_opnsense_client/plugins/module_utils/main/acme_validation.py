@@ -3,7 +3,7 @@ from basic.ansible import AnsibleModule
 from plugins.module_utils.base.api import \
     Session
 from plugins.module_utils.helper.main import is_unset
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class Validation(BaseModule):
@@ -61,6 +61,7 @@ class Validation(BaseModule):
         'dns_variomedia_key', 'dns_schlundtech_user', 'dns_schlundtech_password', 'dns_easydns_apitoken',
         'dns_easydns_apikey', 'dns_euserv_user', 'dns_euserv_password', 'dns_leaseweb_key', 'dns_cn_user',
         'dns_cn_password', 'dns_arvan_token', 'dns_artfiles_username', 'dns_artfiles_password', 'dns_hetzner_token',
+        'dns_hetznercloud_token',
         'dns_hexonet_login', 'dns_hexonet_password', 'dns_1984hosting_user', 'dns_1984hosting_password',
         'dns_kas_login', 'dns_kas_authdata', 'dns_kas_authtype', 'dns_desec_token', 'dns_desec_name',
         'dns_infomaniak_token', 'dns_zone_username', 'dns_zone_key', 'dns_dynv6_token', 'dns_cpanel_user',
@@ -122,11 +123,8 @@ class Validation(BaseModule):
                 ]
 
             elif self.p['method'] == 'dns01':
-                self.FIELDS_CHANGE = self.FIELDS_CHANGE + ['dns_service'] + [
-                    field
-                    for field in self.FIELDS_ALL
-                    if field.startswith(self.p['dns_service'])
-                ]
+                # OPNsense API does not seem to return the access-tokens anymore - no way to compare it
+                self.r['changed'] = True
 
         self._base_check()
 

@@ -52,8 +52,11 @@ def run_module(module_input):
                 'dhcrelay',
                 'dhcp', 'kea',
                 'dnsmasq',
-                'haproxy'
+                'haproxy',
                 'wazuh',
+                'nat_source',
+                'nat_one_to_one',
+                'nut',
             ],
             description='What part of the running config should be reloaded'
         ),
@@ -182,6 +185,18 @@ def run_module(module_input):
         elif target in ['haproxy']:
             from plugins.module_utils.main.haproxy_general_settings import \
                 HaproxyGeneralSettings as Target_Obj
+
+        elif target == 'nat_source':
+            from plugins.module_utils.main.nat_source import \
+                SNat as Target_Obj
+
+        elif target == 'nat_one_to_one':
+            from plugins.module_utils.main.nat_one_to_one import \
+                OneToOne as Target_Obj
+
+        elif target == 'nut':
+            from plugins.module_utils.main.nut import \
+                Nut as Target_Obj
 
     except MODULE_EXCEPTIONS:
         module_dependency_error()

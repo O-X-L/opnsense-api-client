@@ -3,7 +3,7 @@ from inspect import getfile as inspect_getfile
 
 from basic.ansible import AnsibleModule
 
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 from plugins.module_utils.base.multi import \
     MultiModule, MultiModuleCallbacks
 from plugins.module_utils.helper.utils import profiler

@@ -6,9 +6,10 @@ from ansible.module_utils.common.arg_spec import ModuleArgumentSpecValidator
 from plugins.module_utils.base.handler import ModuleSoftError
 from plugins.module_utils.helper.main import diff_remove_empty
 from plugins.module_utils.base.api import Session
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 from plugins.module_utils.defaults.main import \
     OPN_MOD_ARGS, RELOAD_MOD_ARG_DEF_FALSE
+from plugins.module_utils.helper.translate import SimplifyTranslate
 
 
 def build_multi_mod_args(
@@ -197,6 +198,7 @@ class MultiModuleCallbacks(ABC):
                 except KeyError:
                     continue
 
+            entry_cnf[SimplifyTranslate.FLAG_PROCESSED] = ''
             cache['main'].append(entry_cnf)
 
         return cache
@@ -442,12 +444,12 @@ class MultiModule:
                 if not self.m.check_mode:
                     entry.delete()
 
-            elif entry.b.is_enabled():
+            elif entry.is_enabled():
                 entry_result['changed'] = True
                 self.r['diff']['before'][entry_name] = {'enabled': True}
                 self.r['diff']['after'][entry_name] = {'enabled': False}
                 if not self.m.check_mode:
-                    entry.b.disable()
+                    entry.disable()
 
             self._add_entry_result(entry, entry_result)
 

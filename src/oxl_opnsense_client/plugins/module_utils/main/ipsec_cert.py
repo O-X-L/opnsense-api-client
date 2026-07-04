@@ -4,8 +4,10 @@ from basic.ansible import AnsibleModule
 from plugins.module_utils.base.api import \
     Session
 from plugins.module_utils.helper.main import \
-    get_selected, is_unset
-from plugins.module_utils.base.cls import BaseModule
+    is_unset
+from plugins.module_utils.helper.translate import \
+    get_selected
+from plugins.module_utils.base.module import BaseModule
 
 
 class KeyPair(BaseModule):
@@ -66,7 +68,7 @@ class KeyPair(BaseModule):
 
         self._base_check()
 
-    def _simplify_existing(self, key: dict) -> dict:
+    def simplify_existing(self, key: dict) -> dict:
         # makes processing easier
         simple = {
             'type': get_selected(key['keyType']),
@@ -87,4 +89,4 @@ class KeyPair(BaseModule):
         return simple
 
     def update(self) -> None:
-        self.b.update(enable_switch=False)
+        self._base_update(enable_switch=False)

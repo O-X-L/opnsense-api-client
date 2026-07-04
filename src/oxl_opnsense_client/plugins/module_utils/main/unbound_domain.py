@@ -6,7 +6,7 @@ from plugins.module_utils.helper.validate import \
     validate_port, is_ip
 from plugins.module_utils.helper.unbound import \
     validate_domain
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class Domain(BaseModule):

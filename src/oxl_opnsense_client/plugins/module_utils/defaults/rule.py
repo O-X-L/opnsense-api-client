@@ -46,6 +46,10 @@ RULE_DEFAULTS = {
     'description': '',
     'debug': False,
     'icmp_type': [],
+    'icmpv6_type': [],
+    'divert_to': '',
+    'shaper1': '',
+    'shaper2': '',
 }
 
 RULE_MOD_ARG_ALIASES = {
@@ -73,6 +77,7 @@ RULE_MOD_ARG_ALIASES = {
     'state': ['st'],
     'enabled': ['en'],
     'icmp_type': ['icmp_types'],
+    'icmpv6_type': ['icmpv6_types', 'ip6_icmp_types'],
 }
 
 RULE_MATCH_FIELDS_ARG = dict(
@@ -108,7 +113,7 @@ RULE_MOD_ARGS = dict(
     ),
     direction=dict(
         type='str', required=False, default=RULE_DEFAULTS['direction'], aliases=RULE_MOD_ARG_ALIASES['direction'],
-        choices=['in', 'out']
+        choices=['in', 'out', 'any']
     ),
     ip_protocol=dict(
         type='str', required=False, choices=['inet', 'inet6', 'inet46'],
@@ -247,11 +252,23 @@ RULE_MOD_ARGS = dict(
     icmp_type=dict(
         type='list', elements='str', required=False, default=RULE_DEFAULTS['icmp_type'],
         aliases=RULE_MOD_ARG_ALIASES['icmp_type'], choices=[
-            'echoreq', 'echorep', 'unreach', 'squench', 'redir', 'althost', 'routeradv', 'routersol', 'timex',
-            'paramprob', 'timereq', 'timerep', 'inforeq', 'inforep', 'maskreq', 'maskrep',
+            'echoreq', 'echorep', 'unreach', 'redir', 'routeradv', 'routersol', 'timex',
+            'paramprob', 'timereq', 'timerep', 'photuris',
         ],
-        description='If protocol is ICMP/IPV6-ICMP you can specify the types'
+        description='If protocol is ICMP you can specify the types'
     ),
+    icmpv6_type=dict(
+        type='list', elements='str', required=False, default=RULE_DEFAULTS['icmpv6_type'],
+        aliases=RULE_MOD_ARG_ALIASES['icmpv6_type'], choices=[
+            'unreach', 'toobig', 'timex', 'paramprob', 'echoreq', 'echorep', 'listqry', 'listenrep',
+            'listendone', 'routersol', 'reouteradv', 'neighbrsol', 'neighbradv', 'redir', 'routrrenum',
+            'niqry', 'nirep', 'mtraceresp', 'mtrace',
+        ],
+        description='If protocol is ICMPv6 you can specify the types'
+    ),
+    divert_to=dict(type='str', required=False, description='Target to divert the traffic to'),
+    shaper1=dict(type='str', required=False, description='Traffic Shaper to apply'),
+    shaper2=dict(type='str', required=False, description='Traffic Shaper to apply'),
     **STATE_MOD_ARG,
     **RULE_MATCH_FIELDS_ARG,
 )

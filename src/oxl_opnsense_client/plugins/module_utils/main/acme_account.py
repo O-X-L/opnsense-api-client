@@ -2,7 +2,7 @@ from basic.ansible import AnsibleModule
 
 from plugins.module_utils.base.api import \
     Session
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class Account(BaseModule):
@@ -34,7 +34,7 @@ class Account(BaseModule):
         self.account = {}
 
     def process(self) -> None:
-        self.b.process()
+        self._base_process()
 
         if self.p['state'] == 'present' and self.p['register']:
             self.register()

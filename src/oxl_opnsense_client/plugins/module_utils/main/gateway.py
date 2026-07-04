@@ -7,7 +7,7 @@ from plugins.module_utils.helper.validate import \
 from plugins.module_utils.helper.main import is_unset
 from plugins.module_utils.base.api import \
     Session
-from plugins.module_utils.base.cls import BaseModule
+from plugins.module_utils.base.module import BaseModule
 
 
 class Gw(BaseModule):
@@ -50,6 +50,7 @@ class Gw(BaseModule):
         ],
         'select': ['interface', 'ip_protocol'],
     }
+    FIELDS_OPTIONAL = ['far_gw']
     INT_VALIDATIONS = {
         'priority': {'min': 0, 'max': 255},
         'weight': {'min': 1, 'max': 5},

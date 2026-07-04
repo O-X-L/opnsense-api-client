@@ -33,6 +33,7 @@ function patch() {
   sed -i 's|^from ansible.module_utils.basic|from basic.ansible|g' "$file"
   # sed -i 's|^from ansible.module_utils.common.arg_spec|from basic.ansible|g' "$file"
   sed -i 's|from ansible_collections.oxlorg.opnsense.plugins|from plugins|g' "$file"
+  sed -i "s|'ansible_collections.oxlorg.opnsense.plugins|'plugins|g" "$file"
   if echo "$file" | grep -q 'plugins/modules/'
   then
     sed -i 's|def run_module():|def run_module(module_input):|g' "$file"
